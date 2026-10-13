@@ -47,3 +47,32 @@ export const authenticate = (
     });
   }
 };
+
+/**
+ * Middleware: opsional verifikasi JWT token
+ * Jika ada Authorization Bearer token valid, req.user akan diisi.
+ * Jika tidak ada atau token tidak valid, request tetap diproses sebagai tamu (req.user = undefined).
+ */
+export const optionalAuthenticate = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    req.user = undefined;
+    return next();
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    req.user = decoded;
+  } catch {
+    req.user = undefined;
+  }
+
+  next();
+};

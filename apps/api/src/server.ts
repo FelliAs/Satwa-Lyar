@@ -24,7 +24,12 @@ const startServer = async () => {
   });
 };
 
-startServer().catch((err) => {
-  console.error('❌ Gagal menjalankan server:', err);
-  process.exit(1);
-});
+// Jalankan standalone server jika bukan di environment Vercel Serverless Function
+if (!process.env.VERCEL) {
+  startServer().catch((err) => {
+    console.error('❌ Gagal menjalankan server:', err);
+    process.exit(1);
+  });
+}
+
+export default app;
