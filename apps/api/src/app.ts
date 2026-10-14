@@ -74,8 +74,21 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // ================================
-// HEALTH CHECK
+// ROOT & HEALTH CHECK
 // ================================
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    name: 'SATWA LYAR API',
+    message: 'Backend API Satwa Lyar aktif.',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth/login',
+      admin: '/api/admin',
+    },
+  });
+});
+
 app.get('/api/health', (_req, res) => {
   res.status(200).json({
     success: true,

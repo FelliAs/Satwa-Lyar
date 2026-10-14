@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "db:init": "tsx src/database/init-db.ts",
+    "validate": "tsx src/validate.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts"

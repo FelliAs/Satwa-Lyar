@@ -11,6 +11,7 @@
     "dev": "npm run dev:api",
     "dev:api": "npm --workspace=apps/api run dev",
     "db:init": "npm --workspace=apps/api run db:init",
+    "validate": "npm --workspace=apps/api run validate",
     "dev:web": "npm --workspace=apps/web run dev",
     "build:api": "npm --workspace=apps/api run build",
     "build:web": "npm --workspace=apps/web run build"
