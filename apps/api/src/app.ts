@@ -5,12 +5,20 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
+// Routes Publik & User
 import authRoutes from './modules/auth/auth.routes';
+import animalsPublicRoutes from './modules/animals/animals.public.routes';
+import categoriesPublicRoutes from './modules/categories/categories.public.routes';
+import favoritesRoutes from './modules/favorites/favorites.routes';
+import quizUserRoutes from './modules/quiz/quiz.user.routes';
+import userProfileRoutes from './modules/users/users.profile.routes';
+
+// Routes Admin
+import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import animalsRoutes from './modules/animals/animals.routes';
 import categoriesRoutes from './modules/categories/categories.routes';
 import quizRoutes from './modules/quiz/quiz.routes';
 import usersRoutes from './modules/users/users.routes';
-import dashboardRoutes from './modules/dashboard/dashboard.routes';
 
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
@@ -51,10 +59,10 @@ app.use('/api', globalLimiter);
 // Rate Limiting: lebih ketat untuk auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 menit
-  max: 10,
+  max: 15,
   message: {
     success: false,
-    message: 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.',
+    message: 'Terlalu banyak percobaan autentikasi. Coba lagi dalam 15 menit.',
   },
 });
 
@@ -99,13 +107,30 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ================================
-// ROUTES
+// ROUTES: PUBLIK & USER
 // ================================
 
-// Auth (rate limited lebih ketat)
+// Auth (register, login, logout, me)
 app.use('/api/auth', authLimiter, authRoutes);
 
-// Admin routes
+// User Profile (view profile, update profile, change password)
+app.use('/api/users', userProfileRoutes);
+
+// Public Animals (browse, search, filter zona & konservasi, detail satwa)
+app.use('/api/animals', animalsPublicRoutes);
+
+// Public Categories (4 zona fauna: Air Tawar, Serangga, Reptil, Burung)
+app.use('/api/categories', categoriesPublicRoutes);
+
+// User Favorites (list, add, remove, check favorite fauna)
+app.use('/api/favorites', favoritesRoutes);
+
+// User Quizzes (list active quizzes, take quiz questions, submit answers, history)
+app.use('/api/quiz', quizUserRoutes);
+
+// ================================
+// ROUTES: ADMIN (PROTECTED)
+// ================================
 app.use('/api/admin/dashboard', dashboardRoutes);
 app.use('/api/admin/animals', animalsRoutes);
 app.use('/api/admin/categories', categoriesRoutes);
