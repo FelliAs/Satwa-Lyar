@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../config/database';
 import { R2_PUBLIC_URL } from '../../config/r2';
-import { getCache, setCache } from '../../config/redis';
+import { getCache, setCache, getCacheVersion } from '../../config/redis';
 import { createError } from '../../middleware/error.middleware';
 
 // ============================================
@@ -14,7 +14,9 @@ export const getPublicCategories = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const cacheKey = 'public_categories_list';
+    // Cache key memakai versi cache, jadi data basi (setelah admin mengubah
+    // kategori/fauna) tidak akan pernah dilayani.
+    const cacheKey = `v${await getCacheVersion()}:public_categories_list`;
     const cached = await getCache(cacheKey);
     if (cached) {
       res.status(200).json(cached);

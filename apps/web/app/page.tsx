@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const categories = [
   {
@@ -79,6 +79,12 @@ const animals = [
 
 export default function HomePage() {
   const [search, setSearch] = useState("");
+  const [year, setYear] = useState<number | null>(null);
+
+  // Tahun dihitung setelah mount agar aman saat prerender Next.js
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
 
   const filteredAnimals = animals.filter((animal) =>
     `${animal.name} ${animal.category} ${animal.scientific}`
@@ -434,7 +440,7 @@ export default function HomePage() {
             Mengenal satwa, memahami alam, menjaga masa depan.
           </p>
           <p className="text-sm text-slate-400">
-            {new Date().getFullYear()} SATWA LYAR
+            {year ?? ""} SATWA LYAR
           </p>
         </div>
       </footer>

@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../config/database';
 import { createError } from '../../middleware/error.middleware';
+import { recordAdminAction } from '../../modules/logs/logs.service';
+import { bumpCacheVersion } from '../../config/redis';
 
 // ========================
 // GET /api/admin/categories
@@ -89,6 +91,23 @@ export const createCategory = async (
       [result.insertId]
     );
 
+    await recordAdminAction(req, {
+      action: 'CREATE_CATEGORY',
+      resource_type: 'category',
+      resource_id: result.insertId,
+      payload: { name, slug, icon: icon || null },
+      after: {
+        id: Number(result.insertId),
+        name,
+        slug,
+        description: description || null,
+        icon: icon || null,
+      },
+    });
+
+    // Kategori baru -> invalidasi cache zona fauna
+    await bumpCacheVersion();
+
     res.status(201).json({
       success: true,
       message: 'Kategori berhasil dibuat.',
@@ -147,6 +166,32 @@ export const updateCategory = async (
       [id]
     );
 
+    await recordAdminAction(req, {
+      action: 'UPDATE_CATEGORY',
+      resource_type: 'category',
+      resource_id: id,
+      payload: {
+        ...(name !== undefined ? { name } : {}),
+        ...(slug !== undefined ? { slug } : {}),
+        ...(icon !== undefined ? { icon } : {}),
+      },
+      before: {
+        name: existing[0].name,
+        slug: existing[0].slug,
+        description: existing[0].description,
+        icon: existing[0].icon,
+      },
+      after: {
+        name: updated[0]?.name,
+        slug: updated[0]?.slug,
+        description: updated[0]?.description,
+        icon: updated[0]?.icon,
+      },
+    });
+
+    // Kategori berubah -> invalidasi cache zona fauna
+    await bumpCacheVersion();
+
     res.status(200).json({
       success: true,
       message: 'Kategori berhasil diperbarui.',
@@ -167,11 +212,11 @@ export const deleteCategory = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
     const existing = await pool.query(
-      'SELECT id FROM categories WHERE id = ?',
+      'SELECT id, name, slug, description, icon FROM categories WHERE id = ?',
       [id]
     );
+
     if (!existing[0]) {
       return next(createError('Kategori tidak ditemukan.', 404));
     }
@@ -191,6 +236,21 @@ export const deleteCategory = async (
     }
 
     await pool.query('DELETE FROM categories WHERE id = ?', [id]);
+
+    await recordAdminAction(req, {
+      action: 'DELETE_CATEGORY',
+      resource_type: 'category',
+      resource_id: id,
+      before: {
+        name: existing[0].name,
+        slug: existing[0].slug,
+        description: existing[0].description,
+        icon: existing[0].icon,
+      },
+    });
+
+    // Kategori dihapus -> invalidasi cache zona fauna
+    await bumpCacheVersion();
 
     res.status(200).json({
       success: true,

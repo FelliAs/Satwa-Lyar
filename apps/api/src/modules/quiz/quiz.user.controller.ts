@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../config/database';
 import { createError } from '../../middleware/error.middleware';
+import { recordQuizPayload } from '../../modules/logs/logs.service';
 
 // ============================================
 // GET /api/quiz (Public quiz list)
@@ -150,6 +151,17 @@ export const submitQuizAnswers = async (
       userAnswersMap.set(Number(item.question_id), String(item.answer).toUpperCase());
     }
 
+    // Monitoring payload kuis: hanya jawaban yang dipilih pengguna.
+    // Kunci jawaban benar tidak pernah disimpan ke log.
+    await recordQuizPayload(
+      req,
+      Number(id),
+      answers.map((item) => ({
+        question_id: Number(item.question_id),
+        selected_option: String(item.answer).toUpperCase(),
+      }))
+    );
+
     let correctCount = 0;
     const totalQuestions = dbQuestions.length;
 
@@ -190,7 +202,7 @@ export const submitQuizAnswers = async (
       success: true,
       message: 'Quiz berhasil diselesaikan!',
       data: {
-        result_id: insertResult.insertId,
+        result_id: Number(insertResult.insertId),
         quiz_id: quiz.id,
         quiz_title: quiz.title,
         score,
@@ -283,8 +295,8 @@ export const getUserQuizResultById = async (
       return next(createError('Hasil quiz tidak ditemukan.', 404));
     }
 
-    // Pastikan hasil kuis milik user bersangkutan (atau admin)
-    if (result.user_id !== userId && req.user!.role !== 'admin') {
+    // Pastikan hasil kuis milik identitas bersangkutan (atau admin)
+    if (Number(result.user_id) !== userId && Number(req.user!.is_admin) !== 1) {
       return next(createError('Akses ditolak. Anda tidak berhak melihat hasil kuis ini.', 403));
     }
 

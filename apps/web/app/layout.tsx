@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import PageViewTracker from "@/components/PageViewTracker";
 
 export const metadata: Metadata = {
   title: "SATWA LYAR — Jelajahi Dunia Satwa",
@@ -14,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        <PageViewTracker />
+        {children}
+      </body>
     </html>
   );
 }
