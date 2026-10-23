@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import pool from '../../config/database';
 import r2Client, { R2_BUCKET_NAME, R2_PUBLIC_URL } from '../../config/r2';
 import { createError } from '../../middleware/error.middleware';
+import { recordAdminAction } from '../../modules/logs/logs.service';
+import { bumpCacheVersion } from '../../config/redis';
 
 // ========================
 // GET /api/admin/animals
@@ -184,6 +186,35 @@ export const createAnimal = async (
       [result.insertId]
     );
 
+    await recordAdminAction(req, {
+      action: 'CREATE_ANIMAL',
+      resource_type: 'animal',
+      resource_id: result.insertId,
+      payload: {
+        name,
+        category_id,
+        conservation_status: conservation_status || null,
+      },
+      after: {
+        id: Number(result.insertId),
+        name,
+        category_id,
+        conservation_status: conservation_status || null,
+      },
+    });
+
+    if (image_key) {
+      await recordAdminAction(req, {
+        action: 'UPLOAD_ANIMAL_IMAGE',
+        resource_type: 'animal',
+        resource_id: result.insertId,
+        payload: { image_key },
+      });
+    }
+
+    // Data fauna berubah -> invalidasi cache daftar satwa & zona
+    await bumpCacheVersion();
+
     res.status(201).json({
       success: true,
       message: 'Fauna berhasil ditambahkan.',
@@ -289,6 +320,35 @@ export const updateAnimal = async (
       [id]
     );
 
+    await recordAdminAction(req, {
+      action: 'UPDATE_ANIMAL',
+      resource_type: 'animal',
+      resource_id: id,
+      payload: {
+        ...(name !== undefined ? { name } : {}),
+        ...(category_id !== undefined ? { category_id } : {}),
+        ...(conservation_status !== undefined
+          ? { conservation_status }
+          : {}),
+        ...(req.file ? { image_replaced: true } : {}),
+      },
+      before: {
+        name: existing[0].name,
+        category_id: existing[0].category_id,
+        conservation_status: existing[0].conservation_status,
+        image_key: existing[0].image_key,
+      },
+      after: {
+        name: updated[0]?.name,
+        category_id: updated[0]?.category_id,
+        conservation_status: updated[0]?.conservation_status,
+        image_key: updated[0]?.image_key,
+      },
+    });
+
+    // Data fauna berubah -> invalidasi cache daftar satwa & zona
+    await bumpCacheVersion();
+
     res.status(200).json({
       success: true,
       message: 'Fauna berhasil diperbarui.',
@@ -332,6 +392,21 @@ export const deleteAnimal = async (
     }
 
     await pool.query('DELETE FROM animals WHERE id = ?', [id]);
+
+    await recordAdminAction(req, {
+      action: 'DELETE_ANIMAL',
+      resource_type: 'animal',
+      resource_id: id,
+      before: {
+        name: existing[0].name,
+        scientific_name: existing[0].scientific_name,
+        category_id: existing[0].category_id,
+        image_key: existing[0].image_key,
+      },
+    });
+
+    // Data fauna berubah -> invalidasi cache daftar satwa & zona
+    await bumpCacheVersion();
 
     res.status(200).json({
       success: true,
@@ -378,6 +453,17 @@ export const deleteAnimalImage = async (
       'UPDATE animals SET image_key = NULL, updated_at = NOW() WHERE id = ?',
       [id]
     );
+
+    await recordAdminAction(req, {
+      action: 'DELETE_ANIMAL_IMAGE',
+      resource_type: 'animal',
+      resource_id: id,
+      before: { image_key: existing[0].image_key },
+      after: { image_key: null },
+    });
+
+    // Gambar berubah -> invalidasi cache daftar satwa
+    await bumpCacheVersion();
 
     res.status(200).json({
       success: true,

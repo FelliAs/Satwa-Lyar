@@ -18,6 +18,8 @@ const pool = mariadb.createPool({
   ssl: process.env.DB_SSL === 'false' ? undefined : { rejectUnauthorized: false },
   // Mengaktifkan konversi BigInt ke Number agar kompatibel dengan JSON
   bigIntAsNumber: true,
+  // Sama untuk insertId, supaya tidak ada BigInt yang gagal di-serialize JSON
+  insertIdAsNumber: true,
 });
 
 export const testConnection = async (): Promise<void> => {

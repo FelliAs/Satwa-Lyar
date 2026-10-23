@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import "./globals.css";
+import PageViewTracker from "@/components/PageViewTracker";
 
 export const metadata: Metadata = {
   title: "SATWA LYAR — Jelajahi Dunia Satwa",
@@ -18,6 +19,7 @@ export default function RootLayout({
     <html lang="id">
       <body>
         <Navbar />
+        <PageViewTracker />
         {children}
         <Footer />
       </body>
