@@ -48,11 +48,11 @@ export const loginAdmin = async (
   email: string,
   password: string
 ): Promise<AdminUser> => {
-  const response = await apiRequest<{ token: string; user: AdminUser }>(
+  const response = await apiRequest<{ data: { token: string; user: AdminUser } }>(
     '/api/auth/login',
     {
       method: 'POST',
-      body: { email, password },
+      body: JSON.stringify({ email, password }),
     }
   );
 
@@ -65,7 +65,7 @@ export const loginAdmin = async (
     );
   }
 
-  saveAdminSession(response.data!.token, user);
+  saveAdminSession(response.data.token, user);
 
   return user;
 };
@@ -74,7 +74,9 @@ export const logoutAdmin = async (): Promise<void> => {
   try {
     await apiRequest('/api/auth/logout', {
       method: 'POST',
-      token: getAdminToken(),
+      headers: getAdminToken()
+        ? { Authorization: `Bearer ${getAdminToken()}` }
+        : undefined,
     });
   } catch {
     // logout tetap membersihkan sesi lokal

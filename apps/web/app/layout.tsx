@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Navbar from "./components/navbar";
-import Footer from "./components/footer";
 import "./globals.css";
 import PageViewTracker from "@/components/PageViewTracker";
+import { AuthProvider } from "@/context/AuthContext";
+import SiteChrome from "@/components/SiteChrome";
 
 export const metadata: Metadata = {
   title: "SATWA LYAR — Jelajahi Dunia Satwa",
@@ -18,10 +18,10 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body>
-        <Navbar />
-        <PageViewTracker />
-        {children}
-        <Footer />
+        <AuthProvider>
+          <PageViewTracker />
+          <SiteChrome>{children}</SiteChrome>
+        </AuthProvider>
       </body>
     </html>
   );
