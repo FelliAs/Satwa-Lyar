@@ -26,7 +26,6 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
 }
 
@@ -105,14 +104,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(newUser);
   }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    const res = await authApi.register(name, email, password);
-    return {
-      success: res.success,
-      message: res.message || 'Registrasi berhasil! Silakan masuk dengan akun Anda.',
-    };
-  }, []);
-
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -131,10 +122,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: !!user && !!token && isAdminUser(user),
       isAdmin: isAdminUser(user),
       login,
-      register,
       logout,
     }),
-    [user, token, isLoading, login, register, logout]
+    [user, token, isLoading, login, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -238,17 +238,6 @@ export const authApi = {
       }
     ),
 
-  register: (name: string, email: string, password: string, signal?: AbortSignal) =>
-    apiRequest<LoginResponse>(
-      '/api/auth/register',
-      {
-        method: 'POST',
-        body: JSON.stringify({ name, email, password }),
-        signal,
-        skipAuthRedirect: true,
-      }
-    ),
-
   logout: (signal?: AbortSignal) =>
     apiRequest<ApiSuccess<null>>('/api/auth/logout', {
       method: 'POST',
