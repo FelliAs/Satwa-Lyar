@@ -1,99 +1,65 @@
 "use client";
-import Image from "next/image";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-const navItems = [
-  { label: "Beranda", href: "/" },
-  { label: "Dunia Air Tawar", href: "/airtawar" },
-  { label: "Dunia Serangga", href: "/serangga" },
-  { label: "Museum Komodo", href: "/reptils" },
-  { label: "Taman Burung", href: "/burung" },
-  { label: "Farm House", href: "/farmhouse" },
+const zones = [
+  { label: "Dunia Air Tawar", note: "SUNGAI & DANAU", href: "/airtawar" },
+  { label: "Dunia Serangga", note: "DUNIA KECIL, PERAN BESAR", href: "/serangga" },
+  { label: "Museum Komodo", note: "JEJAK SANG PURBA", href: "/reptils" },
+  { label: "Taman Burung", note: "SAYAP NUSANTARA", href: "/burung" },
+  { label: "Farm House", note: "DEKAT DENGAN KESEHARIAN", href: "/farmhouse" },
 ];
+
+function Brand() {
+  return (
+    <span className="brand-lockup">
+      <span className="brand-mark">
+        <img src="/jsnn.jpg" alt="JSN-EDU" />
+      </span>
+      <span className="brand-name">JSN-EDU</span>
+    </span>
+  );
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [destinationsOpen, setDestinationsOpen] = useState(false);
+  const closeMenus = () => { setMenuOpen(false); setDestinationsOpen(false); };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#e5e7dc] bg-[#faf9f4]/95 backdrop-blur-xl">
-      <div className="mx-auto flex min-h-[78px] max-w-[1400px] items-center justify-between gap-4 px-5 lg:px-10">
-        {/* LOGO */}
-        <Link href="/" className="flex shrink-0 items-center gap-3">
-          <Image
-  src="/jsnn.jpg"
-  alt="Logo SATWA LYAR"
-  width={44}
-  height={44}
-  className="h-11 w-11 rounded-full object-cover"
-/>
-
-          <span className="text-lg font-black tracking-tight text-[#254d38] sm:text-xl">
-            SATWA <span className="text-[#a16b3b]">LYAR</span>
-          </span>
-        </Link>
-
-        {/* MENU DESKTOP */}
-        <nav className="hidden items-center gap-4 lg:flex xl:gap-6">
-          {navItems.map((item) => {
-            const active = pathname === item.href;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`whitespace-nowrap border-b-2 py-2 text-sm transition ${
-                  active
-                    ? "border-[#315b40] font-bold text-[#315b40]"
-                    : "border-transparent font-medium text-[#555b50] hover:text-[#315b40]"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+    <header className="site-header sticky top-0 z-50">
+      <div className="header-inner mx-auto flex min-h-[64px] max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-8">
+        <Link href="/" onClick={closeMenus} aria-label="JSN-EDU, beranda"><Brand /></Link>
+        <nav className="desktop-nav hidden items-center xl:flex" aria-label="Navigasi utama">
+          <Link href="/" className={pathname === "/" ? "active" : ""}>Beranda</Link>
+          <div className="desktop-destination-wrap">
+            <button type="button" className={destinationsOpen || zones.some((zone) => pathname === zone.href) ? "active" : ""} aria-expanded={destinationsOpen} onClick={() => setDestinationsOpen((open) => !open)}>Destinasi <span aria-hidden="true">{destinationsOpen ? "⌃" : "⌄"}</span></button>
+            {destinationsOpen && <div className="destinations-menu">
+              <div className="mega-intro"><p>DESTINASI</p><h2>Ke mana rasa ingin tahumu membawa?</h2><span>Pilih satu dunia. Temukan banyak cerita kehidupan.</span></div>
+              <div className="mega-links">{zones.map((zone) => <Link key={zone.href} href={zone.href} onClick={closeMenus}><span><strong>{zone.label}</strong><small>{zone.note}</small></span><i aria-hidden="true">↗</i></Link>)}</div>
+              <Link href="/serangga" onClick={closeMenus} className="mega-feature"><span>PILIHAN JELAJAH</span><strong>Dunia Serangga</strong><i aria-hidden="true">↗</i></Link>
+            </div>}
+          </div>
+          <Link href="/#tentang">Tentang</Link>
+          <Link href="/#faq">FAQ</Link>
         </nav>
-
-        {/* TOMBOL MENU MOBILE */}
-        <button
-          type="button"
-          aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#dce2d6] text-2xl text-[#315b40] lg:hidden"
-        >
-          {menuOpen ? "×" : "☰"}
-        </button>
+        <span className="header-tagline hidden xl:block">DEKAT DENGAN ALAM</span>
+        <button type="button" className="mobile-menu-toggle xl:hidden" aria-label={menuOpen ? "Tutup navigasi" : "Buka navigasi"} aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>{menuOpen ? "×" : "☰"}</button>
       </div>
 
-      {/* MENU MOBILE */}
-      {menuOpen && (
-        <nav className="border-t border-[#e5e7dc] bg-[#faf9f4] px-5 py-3 lg:hidden">
-          <div className="mx-auto flex max-w-[1400px] flex-col gap-1">
-            {navItems.map((item) => {
-              const active = pathname === item.href;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={`rounded-xl px-4 py-3 text-sm transition ${
-                    active
-                      ? "bg-[#e9eee4] font-bold text-[#315b40]"
-                      : "text-[#555b50] hover:bg-[#edf0e7]"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-
-          </div>
-        </nav>
-      )}
+      {menuOpen && <nav className="mobile-nav-panel xl:hidden" aria-label="Navigasi utama">
+        <div className="mobile-nav-top"><Link href="/" onClick={closeMenus}><Brand /></Link><button type="button" aria-label="Tutup navigasi" onClick={closeMenus}>×</button></div>
+        <p className="mobile-nav-kicker">MULAI PENJELAJAHAN</p>
+        <Link href="/" onClick={closeMenus} className="mobile-nav-heading">Beranda</Link>
+        <button type="button" className="mobile-nav-heading mobile-destinations-button" aria-expanded={destinationsOpen} onClick={() => setDestinationsOpen((open) => !open)}>Destinasi <span>{destinationsOpen ? "⌃" : "⌄"}</span></button>
+        {destinationsOpen && <div className="mobile-destinations-list">{zones.map((zone) => <Link key={zone.href} href={zone.href} onClick={closeMenus}>{zone.label}<span aria-hidden="true">↗</span></Link>)}</div>}
+        <Link href="/#tentang" onClick={closeMenus} className="mobile-nav-heading">Tentang</Link>
+        <Link href="/#faq" onClick={closeMenus} className="mobile-nav-heading">FAQ</Link>
+        <div className="mobile-nav-bottom"><a href="/#zona" onClick={closeMenus}>Jelajahi Satwa <span>↗</span></a><p>Kenali lebih dekat. Peduli lebih dalam.</p></div>
+      </nav>}
     </header>
   );
 }

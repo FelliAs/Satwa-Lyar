@@ -1,59 +1,92 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 const insects = [
   {
     name: "Kupu-Kupu",
-    category: "Penyerbuk",
     scientific: "Lepidoptera",
-    emoji: "🦋",
+    type: "Penyerbuk",
+    image:
+      "https://images.unsplash.com/photo-1551059129-6d9d4c6b3c8a?w=900&q=85",
     description:
       "Membantu penyerbukan bunga dan mengalami metamorfosis sempurna.",
+    habitat: "Taman dan hutan",
   },
   {
     name: "Lebah",
-    category: "Penyerbuk",
     scientific: "Anthophila",
-    emoji: "🐝",
+    type: "Penyerbuk",
+    image:
+      "https://images.unsplash.com/photo-1587049352851-8d4e89133924?w=900&q=85",
     description:
       "Berperan penting dalam penyerbukan berbagai tumbuhan berbunga.",
+    habitat: "Kebun dan padang bunga",
   },
   {
     name: "Semut",
-    category: "Sosial",
     scientific: "Formicidae",
-    emoji: "🐜",
+    type: "Sosial",
+    image:
+      "https://images.unsplash.com/photo-1563823251941-6f6c5c6c9b8e?w=900&q=85",
     description:
       "Hidup berkoloni dan bekerja sama mencari makanan serta membangun sarang.",
+    habitat: "Tanah dan kawasan hutan",
   },
   {
     name: "Belalang",
-    category: "Herbivora",
     scientific: "Caelifera",
-    emoji: "🦗",
+    type: "Herbivora",
+    image:
+      "https://images.unsplash.com/photo-1620662736427-b8a198f52a4d?w=900&q=85",
     description:
       "Memakan tumbuhan dan menjadi sumber makanan bagi sejumlah hewan lain.",
+    habitat: "Padang rumput dan kebun",
   },
   {
     name: "Kumbang",
-    category: "Pengurai",
     scientific: "Coleoptera",
-    emoji: "🪲",
+    type: "Pengurai",
+    image:
+      "https://images.unsplash.com/photo-1504512485720-7d83a16ee930?w=900&q=85",
     description:
-      "Kelompok serangga yang sangat beragam, dengan peran berbeda di alam.",
+      "Memiliki banyak jenis dengan peran berbeda dalam menjaga ekosistem.",
+    habitat: "Hutan dan tanah",
   },
   {
     name: "Capung",
-    category: "Predator",
     scientific: "Odonata",
-    emoji: "🌿",
+    type: "Predator",
+    image:
+      "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=900&q=85",
     description:
-      "Pemburu serangga kecil yang sering ditemukan dekat perairan.",
+      "Membantu mengendalikan populasi serangga kecil dan sering ditemukan dekat perairan.",
+    habitat: "Kolam dan sungai",
   },
 ];
 
-const categories = [
+const facts = [
+  {
+    number: "01",
+    title: "Membantu penyerbukan",
+    description:
+      "Kupu-kupu dan lebah membantu proses penyerbukan yang mendukung perkembangbiakan tumbuhan.",
+  },
+  {
+    number: "02",
+    title: "Menjaga rantai makanan",
+    description:
+      "Serangga menjadi sumber makanan bagi berbagai jenis burung, ikan, amfibi, dan hewan lainnya.",
+  },
+  {
+    number: "03",
+    title: "Menjaga keseimbangan alam",
+    description:
+      "Serangga berperan sebagai penyerbuk, pengurai, herbivora, maupun predator dalam ekosistem.",
+  },
+];
+
+const types = [
   "Semua",
   "Penyerbuk",
   "Sosial",
@@ -64,160 +97,319 @@ const categories = [
 
 export default function InsectsPage() {
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("Semua");
+  const [activeType, setActiveType] = useState("Semua");
 
-  const filteredInsects = useMemo(() => {
-    return insects.filter((insect) => {
-      const matchesSearch =
-        insect.name.toLowerCase().includes(search.toLowerCase()) ||
-        insect.scientific.toLowerCase().includes(search.toLowerCase());
+  const filteredInsects = insects.filter((insect) => {
+    const matchesSearch =
+      `${insect.name} ${insect.scientific} ${insect.habitat}`
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
-      const matchesCategory =
-        category === "Semua" || insect.category === category;
+    const matchesType =
+      activeType === "Semua" || insect.type === activeType;
 
-      return matchesSearch && matchesCategory;
-    });
-  }, [search, category]);
+    return matchesSearch && matchesType;
+  });
 
   return (
-    <main className="min-h-screen bg-[#faf9f4] text-[#254d38]">
+    <main className="font-serif-headings min-h-screen bg-[#faf9f4] text-[#27352b]">
       {/* HERO */}
-        <section
-          className="relative overflow-hidden bg-cover bg-center px-5 py-16 sm:py-24 lg:px-10"
+      <section className="relative isolate min-h-[520px] overflow-hidden bg-[#163d3b] sm:min-h-[580px]">
+        <div
+          className="absolute inset-0 -z-20 bg-cover bg-center"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1530053969600-caed2596d242?w=2000&q=85')",
+            backgroundImage:
+              "url('https://tamanmini.com/taman_jelajah_indonesia/wp-content/uploads/2023/09/Museum-Serangga-scaled.jpg')",
           }}
-        >
-          {/* Lapisan gelap supaya teks terbaca */}
-          <div className="absolute inset-0 bg-[#173b29]/65" />
+        />
 
-          {/* Konten hero */}
-          <div className="relative z-10 mx-auto grid max-w-[1400px] items-center gap-10 lg:grid-cols-2">
-            <div className="text-white">
-              <p className="mb-4 text-sm font-bold uppercase tracking-[0.25em] text-[#e5c69b]">
-                Eksplorasi Alam • Dunia Serangga
-              </p>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#102e2c]/95 via-[#102e2c]/75 to-[#102e2c]/25" />
 
-              <h1 className="text-4xl font-black leading-tight sm:text-6xl">
-                Kecil Ukurannya,
-                <span className="block text-[#e5c69b]">
-                  Besar Perannya.
-                </span>
-              </h1>
+        <div className="mx-auto flex min-h-[520px] max-w-7xl items-center px-5 py-20 sm:min-h-[580px] lg:px-10">
+          <div className="max-w-2xl">
+            <a
+              href="/"
+              className="inline-flex items-center gap-2 text-sm text-white/75 transition hover:text-white"
+            >
+              <span>←</span> Kembali ke Beranda
+            </a>
 
-              <p className="mt-6 max-w-xl leading-7 text-white/85">
-                Kenali keanekaragaman serangga, pelajari keunikan kehidupannya,
-                dan temukan peran penting mereka dalam menjaga keseimbangan ekosistem.
-              </p>
+            <p className="mt-8 text-xs font-bold uppercase tracking-[0.25em] text-[#b7d9ba] sm:text-sm">
+              SATWA LYAR / JELAJAHI HABITAT
+            </p>
+
+            <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
+              Dunia
+              <br />
+              <span className="text-[#b7d9ba]">Serangga.</span>
+            </h1>
+
+            <p className="mt-6 max-w-xl text-base leading-8 text-white/80 sm:text-lg">
+              Dari taman yang dipenuhi bunga hingga kawasan hutan,
+              kenali kehidupan serangga dan peran pentingnya dalam
+              menjaga keseimbangan alam.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a
+                href="#jelajahi"
+                className="rounded-full bg-[#c5dfb6] px-6 py-3.5 text-sm font-bold text-[#193c30] transition hover:bg-white"
+              >
+                Jelajahi Serangga <span className="ml-2">↘</span>
+              </a>
 
               <a
-                href="#koleksi"
-                className="mt-8 inline-flex rounded-full bg-white px-6 py-3 font-semibold text-[#254d38] transition hover:bg-[#e9eee4]"
+                href="#tentang"
+                className="rounded-full border bg-[#c5dfb6] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                Jelajahi Serangga ↓
+                Tentang Serangga
               </a>
             </div>
 
-            {/* Panel kanan */}
-            <div className="flex min-h-[280px] items-center justify-center rounded-[2rem] border border-white/20 bg-white/10 p-8 backdrop-blur-sm sm:min-h-[380px]">
-              <span className="text-8xl sm:text-9xl">🦋</span>
+            <div className="mt-12 flex flex-wrap gap-8 border-t border-white/20 pt-6">
+              <div>
+                <p className="text-sm text-white/60">Kenali</p>
+                <p className="mt-1 font-bold text-white">
+                  Ragam serangga
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-white/60">Pelajari</p>
+                <p className="mt-1 font-bold text-white">
+                  Peran ekosistem
+                </p>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-      {/* KOLEKSI */}
+      {/* INTRO */}
       <section
-        id="koleksi"
-        className="border-t border-[#e5e7dc] bg-white px-5 py-16 lg:px-10"
+        id="tentang"
+        className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:py-20 md:grid-cols-2 md:items-center lg:px-10"
       >
-        <div className="mx-auto max-w-[1400px]">
-          <div className="mb-8">
-            <p className="text-sm font-bold uppercase tracking-widest text-[#a16b3b]">
-              Koleksi Edukasi
-            </p>
-            <h2 className="mt-2 text-3xl font-black sm:text-4xl">
-              Temukan Seranggamu
-            </h2>
-            <p className="mt-3 text-[#62685d]">
-              Cari serangga berdasarkan nama atau kelompoknya.
-            </p>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#64815c]">
+            Mengenal Ekosistem
+          </p>
+
+          <h2 className="mt-4 max-w-xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+            Makhluk kecil yang menjaga keseimbangan alam.
+          </h2>
+        </div>
+
+        <div>
+          <p className="leading-8 text-[#73796e]">
+            Serangga merupakan kelompok hewan dengan bentuk dan cara hidup
+            yang beragam. Mereka dapat ditemukan di taman, hutan, padang
+            rumput, hingga lingkungan sekitar manusia.
+          </p>
+
+          <p className="mt-4 leading-8 text-[#73796e]">
+            Sebagian serangga membantu penyerbukan tumbuhan, sebagian
+            berperan dalam penguraian bahan organik, dan lainnya menjadi
+            bagian penting dari rantai makanan.
+          </p>
+        </div>
+      </section>
+
+      {/* INSECT EXPLORER */}
+      <section id="jelajahi" className="bg-white py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-5 lg:px-10">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#64815c]">
+                Ensiklopedia Serangga
+              </p>
+
+              <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+                Jelajahi Koleksi
+              </h2>
+
+              <p className="mt-3 max-w-lg leading-7 text-[#73796e]">
+                Kenali ciri khas, kelompok, dan habitat berbagai serangga.
+              </p>
+            </div>
+
+            <div className="w-full md:max-w-sm">
+              <label
+                htmlFor="search-insect"
+                className="mb-2 block text-sm font-semibold"
+              >
+                Cari serangga
+              </label>
+
+              <div className="flex items-center gap-3 rounded-full border border-[#e5e7dc] bg-[#faf9f4] px-4 py-3 focus-within:border-[#64815c]">
+                <span aria-hidden="true">⌕</span>
+
+                <input
+                  id="search-insect"
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Nama serangga atau habitat..."
+                  className="w-full bg-transparent text-sm outline-none"
+                />
+              </div>
+            </div>
           </div>
 
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Cari nama serangga..."
-            className="mb-5 w-full rounded-2xl border border-[#dce2d6] bg-[#faf9f4] px-5 py-4 outline-none focus:border-[#315b40] sm:max-w-md"
-          />
-
-          <div className="mb-8 flex flex-wrap gap-2">
-            {categories.map((item) => (
+          {/* FILTER */}
+          <div className="mt-7 flex flex-wrap gap-2">
+            {types.map((type) => (
               <button
-                key={item}
-                onClick={() => setCategory(item)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  category === item
+                key={type}
+                type="button"
+                onClick={() => setActiveType(type)}
+                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+                  activeType === type
                     ? "bg-[#315b40] text-white"
-                    : "border border-[#dce2d6] bg-white text-[#555b50] hover:bg-[#edf0e7]"
+                    : "border border-[#e5e7dc] bg-white text-[#60685d] hover:bg-[#edf0e7]"
                 }`}
               >
-                {item}
+                {type}
               </button>
             ))}
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredInsects.map((insect) => (
+          {/* CARDS */}
+          <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {filteredInsects.map((insect, index) => (
               <article
                 key={insect.name}
-                className="rounded-3xl border border-[#e5e7dc] bg-[#faf9f4] p-6 transition hover:-translate-y-1 hover:shadow-lg"
+                className="group overflow-hidden rounded-2xl border border-[#e9e9df] bg-[#faf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="flex h-32 items-center justify-center rounded-2xl bg-[#edf0e7]">
-                  <span className="text-6xl">{insect.emoji}</span>
+                <div className="relative h-56 overflow-hidden bg-[#e5e9df]">
+                  <img
+                    src={insect.image}
+                    alt={insect.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+
+                  <span className="absolute left-4 top-4 rounded-full bg-[#faf9f4]/95 px-3 py-1.5 text-xs font-bold text-[#315b40]">
+                    {insect.type}
+                  </span>
+
+                  <span className="absolute bottom-3 right-4 text-sm font-bold text-white drop-shadow">
+                    0{index + 1}
+                  </span>
                 </div>
 
-                <p className="mt-5 text-xs font-bold uppercase tracking-widest text-[#a16b3b]">
-                  {insect.category}
-                </p>
+                <div className="p-5">
+                  <h3 className="text-xl font-bold">{insect.name}</h3>
 
-                <h3 className="mt-2 text-xl font-extrabold">
-                  {insect.name}
-                </h3>
+                  <p className="mt-1 text-sm italic text-[#858b7e]">
+                    {insect.scientific}
+                  </p>
 
-                <p className="mt-1 text-sm italic text-[#7b8075]">
-                  {insect.scientific}
-                </p>
+                  <p className="mt-4 text-sm leading-7 text-[#73796e]">
+                    {insect.description}
+                  </p>
 
-                <p className="mt-4 text-sm leading-6 text-[#62685d]">
-                  {insect.description}
-                </p>
+                  <div className="mt-5 border-t border-[#e5e7dc] pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[#858b7e]">
+                      Habitat
+                    </p>
+
+                    <p className="mt-1 text-sm font-semibold text-[#315b40]">
+                      {insect.habitat}
+                    </p>
+                  </div>
+                </div>
               </article>
             ))}
           </div>
 
           {filteredInsects.length === 0 && (
-            <p className="py-12 text-center text-[#62685d]">
-              Serangga tidak ditemukan. Coba kata kunci lain, ya!
-            </p>
+            <div className="rounded-2xl border border-dashed border-[#d9dfd2] py-14 text-center">
+              <p className="text-lg font-bold">Serangga belum ditemukan.</p>
+              <p className="mt-2 text-sm text-[#73796e]">
+                Coba nama lain atau pilih filter Semua.
+              </p>
+
+              <button
+                onClick={() => {
+                  setSearch("");
+                  setActiveType("Semua");
+                }}
+                className="mt-5 rounded-full bg-[#315b40] px-5 py-2.5 text-sm font-semibold text-white"
+              >
+                Reset pencarian
+              </button>
+            </div>
           )}
         </div>
       </section>
 
-      {/* FAKTA */}
-      <section className="px-5 py-16 lg:px-10">
-        <div className="mx-auto max-w-[1400px] rounded-[2rem] bg-[#254d38] p-8 text-white sm:p-12">
-          <p className="text-sm font-bold uppercase tracking-widest text-[#d9b486]">
-            Tahukah Kamu?
-          </p>
-          <h2 className="mt-3 text-3xl font-black sm:text-4xl">
-            Dari telur hingga dewasa.
-          </h2>
-          <p className="mt-4 max-w-2xl leading-7 text-white/80">
-            Kupu-kupu mengalami metamorfosis sempurna melalui empat
-            tahap: telur, larva (ulat), pupa (kepompong), dan dewasa.
-            Tidak semua serangga mengalami tahapan yang sama.
-          </p>
+      {/* EDUCATION */}
+      <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20 lg:px-10">
+        <div className="grid gap-10 md:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#64815c]">
+              Kenapa Penting?
+            </p>
+
+            <h2 className="mt-4 text-3xl font-bold leading-tight sm:text-4xl">
+              Serangga punya peran besar bagi kehidupan.
+            </h2>
+
+            <p className="mt-5 leading-8 text-[#73796e]">
+              Keberadaan serangga mendukung proses alami yang menjaga
+              ekosistem tetap berjalan. Melindungi habitat dan mengurangi
+              pencemaran menjadi bagian dari upaya menjaga keanekaragaman hayati.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {facts.map((fact) => (
+              <article
+                key={fact.number}
+                className="grid grid-cols-[48px_1fr] gap-4 rounded-2xl border border-[#e5e7dc] bg-white p-5 sm:p-6"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e9eee4] text-sm font-bold text-[#315b40]">
+                  {fact.number}
+                </span>
+
+                <div>
+                  <h3 className="font-bold">{fact.title}</h3>
+
+                  <p className="mt-2 text-sm leading-7 text-[#73796e]">
+                    {fact.description}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* BOTTOM CTA */}
+      <section className="px-5 pb-16 sm:pb-20 lg:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 overflow-hidden rounded-3xl bg-[#234b3c] p-7 sm:p-10 md:flex-row md:items-center md:justify-between md:p-14">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#b7d9ba]">
+              Terus Jelajahi
+            </p>
+
+            <h2 className="mt-4 text-3xl font-bold leading-tight text-white sm:text-4xl">
+              Masih banyak kehidupan yang menunggu untuk dikenal.
+            </h2>
+
+            <p className="mt-4 leading-7 text-white/70">
+              Lanjutkan petualanganmu dan temukan dunia satwa lainnya di
+              SATWA LYAR.
+            </p>
+          </div>
+
+          <a
+            href="/"
+            className="inline-flex shrink-0 items-center justify-center gap-3 self-start rounded-full bg-[#c5dfb6] px-6 py-3.5 text-sm font-bold text-[#193c30] transition hover:bg-white md:self-center"
+          >
+            Jelajahi Zona Lain <span>↗</span>
+          </a>
         </div>
       </section>
     </main>

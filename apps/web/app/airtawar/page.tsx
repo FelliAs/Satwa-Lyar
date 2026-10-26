@@ -82,14 +82,14 @@ export default function airtawarPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#faf9f4] text-[#27352b]">
+    <main className="font-serif-headings min-h-screen bg-[#faf9f4] text-[#27352b]">
       {/* HERO */}
       <section className="relative isolate min-h-[520px] overflow-hidden bg-[#163d3b] sm:min-h-[580px]">
         <div
           className="absolute inset-0 -z-20 bg-cover bg-center"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1530053969600-caed2596d242?w=2000&q=85')",
+              "url('https://image.idn.media/post/20200422/new-8-2016-aria-amazon-cruise-1-low-resolution-cfb9877f8c8c161382920d818ef0711f.jpg')",
           }}
         />
 
@@ -129,7 +129,7 @@ export default function airtawarPage() {
 
               <a
                 href="#tentang"
-                className="rounded-full border border-white/35 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-full border bg-[#c5dfb6] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Tentang Habitat
               </a>

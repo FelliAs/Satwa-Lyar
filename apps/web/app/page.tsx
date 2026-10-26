@@ -1,334 +1,92 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const categories = [
-  {
-    name: "Air Tawar",
-    icon: "🐟",
-    description: "Jelajahi kehidupan di perairan tawar.",
-    image:
-      "https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=700&q=80",
-    color: "bg-cyan-50",
-    href: "/airtawar",
-  },
-  {
-    name: "Serangga",
-    icon: "🦋",
-    description: "Kenali serangga unik di sekitar kita.",
-    image:
-      "https://images.unsplash.com/photo-1559253664-ca249d4608c6?w=700&q=80",
-    color: "bg-amber-50",
-    href: "/serangga",
-  },
-  {
-    name: "Reptil",
-    icon: "🦎",
-    description: "Pelajari reptil dan habitatnya.",
-    image:
-      "https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=700&q=80",
-    color: "bg-green-50",
-    href: "/reptils",
-  },
-  {
-    name: "Burung",
-    icon: "🦜",
-    description: "Temukan keanekaragaman dunia burung.",
-    image:
-      "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=700&q=80",
-    color: "bg-sky-50",
-    href: "/burung",
-  },
-  {
-    name: "Farmhouse",
-    icon: "🏘️",
-    description: "Temukan keanekaragaman hewan ternak.",
-    image:
-      "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=700&q=80",
-    color: "bg-sky-50",
-    href: "/farmhouse",
-  },
+const destinations = [
+  { name: "Dunia Air Tawar", kicker: "SUNGAI & DANAU", description: "Menyelami kehidupan yang mengalir di perairan kita.", image: "https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=900&q=85", href: "/airtawar" },
+  { name: "Dunia Serangga", kicker: "DUNIA KECIL, PERAN BESAR", description: "Melihat lebih dekat para penyerbuk dan pengurai alam.", image: "https://images.unsplash.com/photo-1559253664-ca249d4608c6?w=900&q=85", href: "/serangga" },
+  { name: "Museum Komodo", kicker: "JEJAK SANG PURBA", description: "Mengenal kadal terbesar dan habitat khasnya.", image: "https://images.unsplash.com/photo-1570741066052-817c6de995c8?w=900&q=85", href: "/reptils" },
+  { name: "Taman Burung", kicker: "SAYAP NUSANTARA", description: "Menemukan warna, suara, dan peran burung di alam.", image: "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=900&q=85", href: "/burung" },
+  { name: "Farm House", kicker: "KEHIDUPAN BERSAMA", description: "Belajar tentang satwa ternak dan cara merawatnya.", image: "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=900&q=85", href: "/farmhouse" },
 ];
 
 const animals = [
-  {
-    name: "Ikan Arwana",
-    scientific: "Scleropages formosus",
-    category: "Air Tawar",
-    image:
-      "https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=700&q=80",
-    description: "Ikan air tawar yang dikenal dengan sisiknya yang indah.",
-  },
-  {
-    name: "Kupu-kupu",
-    scientific: "Rhopalocera",
-    category: "Serangga",
-    image:
-      "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=700&q=80",
-    description: "Serangga bersayap indah yang membantu penyerbukan.",
-  },
-  {
-    name: "Komodo",
-    scientific: "Varanus komodoensis",
-    category: "Reptil",
-    image:
-      "https://images.unsplash.com/photo-1570741066052-817c6de995c8?w=700&q=80",
-    description: "Kadal besar asli Indonesia yang hidup di kawasan tertentu.",
-  },
-  {
-    name: "Burung Macaw",
-    scientific: "Ara macao",
-    category: "Burung",
-    image:
-      "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=700&q=80",
-    description: "Burung tropis dengan bulu berwarna cerah.",
-  },
+  { name: "Jalak Bali", scientific: "Leucopsar rothschildi", category: "Burung", location: "Bali", image: "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=900&q=85", description: "Bulu putih dan jambul biru di sekitar mata menjadikan burung endemik Pulau Bali ini mudah dikenali." },
+  { name: "Anoa dataran rendah", scientific: "Bubalus depressicornis", category: "Mamalia", location: "Sulawesi", image: "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=900&q=85", description: "Kerabat kerbau bertubuh kecil ini hidup di hutan Sulawesi dan memerlukan habitat yang lestari." },
+  { name: "Komodo", scientific: "Varanus komodoensis", category: "Reptil", location: "Nusa Tenggara Timur", image: "https://images.unsplash.com/photo-1570741066052-817c6de995c8?w=900&q=85", description: "Kadal terbesar di dunia ini hidup di beberapa pulau Nusa Tenggara dan menjadi satwa kebanggaan Indonesia." },
+];
+
+const filters = ["Semua satwa", "Mamalia", "Burung", "Reptil", "Ikan", "Serangga"];
+const faqs = [
+  { question: "Apa itu JSN-EDU?", answer: "JSN-EDU adalah ruang belajar digital untuk mengenal satwa, habitat, serta peran setiap makhluk hidup dalam menjaga keseimbangan alam." },
+  { question: "Siapa yang bisa belajar di sini?", answer: "Semua orang bisa menjelajahi JSN-EDU, termasuk pelajar, keluarga, pendidik, dan siapa pun yang ingin mengenal alam lebih dekat." },
+  { question: "Apa yang bisa ditemukan di menu Destinasi?", answer: "Ada lima dunia untuk dijelajahi: Air Tawar, Serangga, Museum Komodo, Taman Burung, dan Farm House." },
+  { question: "Bagaimana cara ikut menjaga satwa?", answer: "Mulailah dengan mengenal satwa dan habitatnya, menghargai lingkungan, serta membagikan pengetahuan yang benar kepada orang di sekitar kita." },
 ];
 
 export default function HomePage() {
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("Semua satwa");
+  const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
 
-  const filteredAnimals = animals.filter((animal) =>
-    `${animal.name} ${animal.category} ${animal.scientific}`
-      .toLowerCase()
-      .includes(search.toLowerCase())
+  useEffect(() => {
+    const sections = document.querySelectorAll<HTMLElement>("[data-reveal]");
+    if (!("IntersectionObserver" in window)) {
+      sections.forEach((section) => section.classList.add("is-visible"));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => entry.target.classList.toggle("is-visible", entry.isIntersecting));
+    }, { threshold: 0.08, rootMargin: "0px 0px -32px 0px" });
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
+  const visibleAnimals = animals.filter((animal) =>
+    (filter === "Semua satwa" || animal.category === filter) &&
+    `${animal.name} ${animal.category} ${animal.scientific}`.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <main className="min-h-screen bg-[#f8faf7] text-slate-800">
-      
-      {/* HERO */}
-      <section className="relative isolate overflow-hidden bg-green-950">
-        <div
-          className="absolute inset-0 -z-20 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1448375240586-882707db888b?w=2000&q=85')",
-          }}
-        />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-green-950/95 via-green-950/75 to-green-950/20" />
-
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-24 md:grid-cols-2 md:py-32 lg:px-8">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-green-100">
-              🌱 Platform Edukasi Keanekaragaman Hayati
-            </span>
-
-            <h1 className="mt-7 text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Kenali Satwa,
-              <br />
-              <span className="text-lime-300">Jaga Alam Kita.</span>
-            </h1>
-
-            <p className="mt-6 max-w-lg text-base leading-8 text-green-50/90 sm:text-lg">
-              Temukan fakta menarik tentang berbagai satwa, pelajari
-              habitatnya, dan kenali keanekaragaman hayati Indonesia
-              bersama SATWA LYAR.
-            </p>
-
-            <div className="mt-9 flex flex-wrap gap-4">
-              <a
-                href="#zona"
-                className="rounded-xl bg-lime-400 px-6 py-3.5 font-bold text-green-950 transition hover:bg-lime-300"
-              >
-                Jelajahi Satwa →
-              </a>
-              <a
-                href="#quiz"
-                className="rounded-xl border border-white/40 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10"
-              >
-                Mulai Quiz
-              </a>
-            </div>
-
-            <div className="mt-12 flex gap-8 text-white">
-              <div>
-                <p className="text-3xl font-extrabold">5</p>
-                <p className="mt-1 text-sm text-green-100">Zona Satwa</p>
-              </div>
-              <div className="border-l border-white/30 pl-8">
-                <p className="text-3xl font-extrabold">∞</p>
-                <p className="mt-1 text-sm text-green-100">
-                  Pengetahuan
-                </p>
-              </div>
-            </div>
+    <main className="overflow-hidden bg-[#f6f5ed] text-[#183d32]">
+      <section data-reveal className="hero relative isolate">
+        <div className="hero-image absolute inset-0 -z-20" />
+        <div className="hero-shade absolute inset-0 -z-10" />
+        <div className="hero-inner">
+          <div className="hero-copy">
+            <p className="hero-eyebrow">JELAJAHI KEHIDUPAN INDONESIA</p>
+            <h1 className="hero-heading">Kenali Satwa<br />Jaga Alam Kita</h1>
+            <p className="hero-description">Dari rimbunnya hutan hingga kehidupan di air tawar. Temukan keunikan satwa Indonesia dan alasan kita perlu menjaganya.</p>
+            <div className="mt-7 flex flex-wrap gap-3"><a href="#zona" className="button-primary">Jelajahi Satwa <span aria-hidden="true">↗</span></a><a href="#tentang" className="button-ghost">Tentang Kami</a></div>
+            <div className="hero-meta"><span>SATWA · HABITAT · KEPEDULIAN</span><a href="#zona">Mulai penjelajahan <span aria-hidden="true">↓</span></a></div>
           </div>
-
-          <div className="hidden md:block">
-            <div className="ml-auto max-w-sm rounded-3xl border border-white/30 bg-white/10 p-5 shadow-2xl backdrop-blur-md">
-              <img
-                src="https://images.unsplash.com/photo-1511497584788-876760111969?w=800&q=85"
-                alt="Hutan hijau sebagai habitat berbagai satwa"
-                className="h-64 w-full rounded-2xl object-cover"
-              />
-              <p className="mt-5 text-sm text-lime-300">
-                TAHUKAH KAMU?
-              </p>
-              <h2 className="mt-2 text-xl font-bold text-white">
-                Setiap satwa punya peran penting dalam ekosistem.
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-green-50/80">
-                Kenali kehidupan mereka untuk memahami pentingnya
-                menjaga keseimbangan alam.
-              </p>
-            </div>
-          </div>
+          <article className="hero-feature">
+            <img src="https://www.mediajustitia.com/wp-content/uploads/2026/10/Orangutan-indonesia-terdesak-2773950329.webp" alt="Orangutan di antara pepohonan hutan" />
+            <div className="hero-fact"><p className="eyebrow">CATATAN DARI HABITAT</p><h2>Penjaga regenerasi hutan</h2><p>Orangutan membantu menyebarkan biji dari buah yang dimakannya. Hutan pun terus tumbuh.</p><span>⌖ Hutan tropis Kalimantan</span></div>
+          </article>
         </div>
       </section>
 
-      {/* CATEGORY */}
-      <section id="zona" className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <p className="font-bold uppercase tracking-widest text-green-700">
-              Jelajahi Dunia Satwa
-            </p>
-            <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">
-              Pilih Zona Favoritmu
-            </h2>
-            <p className="mt-3 max-w-xl leading-7 text-slate-500">
-              Mulai petualanganmu dengan mengenal empat kelompok satwa
-              yang tersedia di SATWA LYAR.
-            </p>
-          </div>
+      <section data-reveal id="zona" className="destination-section scroll-mt-20 px-5 py-16 sm:py-20 lg:px-8">
+        <div className="section-heading mx-auto text-center"><p className="eyebrow">PILIH ARAH PENJELAJAHANMU</p><h2 className="section-title">Jelajahi Dunia Satwa</h2><p className="section-description mx-auto">Lima pintu untuk mengenal kehidupan. Setiap destinasi menyimpan cerita dan sudut pandang yang berbeda.</p></div>
+        <div className="destination-grid mx-auto mt-9 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-6" onPointerLeave={() => setSelectedDestination(null)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setSelectedDestination(null); }}>
+          {destinations.map((destination, index) => <a key={destination.name} href={destination.href} onPointerEnter={() => setSelectedDestination(destination.name)} onPointerDown={() => setSelectedDestination(destination.name)} onFocus={() => setSelectedDestination(destination.name)} style={{ backgroundImage: `linear-gradient(180deg, transparent 24%, rgb(7 25 19 / 84%) 100%), url("${destination.image}")` }} className={`destination-card group lg:col-span-2 ${index === 3 ? "lg:col-start-2" : index === 4 ? "lg:col-start-4" : ""} ${selectedDestination ? selectedDestination === destination.name ? "is-selected" : "is-dimmed" : ""}`}><span className="destination-kicker">{destination.kicker}</span><span className="destination-arrow" aria-hidden="true">↗</span><div><h3>{destination.name}</h3><p>{destination.description}</p></div></a>)}
         </div>
+        <p className="destination-footnote">Mulai dari rasa ingin tahu. Temukan cerita yang paling dekat denganmu.</p>
+      </section>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((category) => (
-            <a
-              key={category.name}
-              href={category.href}
-              className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={category.image}
-                  alt={category.name}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                />
-                <span className="absolute left-4 top-4 rounded-xl bg-white px-3 py-2 text-xl shadow">
-                  {category.icon}
-                </span>
-              </div>
-
-              <div className="p-5">
-                <h3 className="text-xl font-bold">{category.name}</h3>
-                <p className="mt-2 min-h-12 text-sm leading-6 text-slate-500">
-                  {category.description}
-                </p>
-                <p className="mt-4 font-bold text-green-700">
-                  Jelajahi zona <span aria-hidden="true">→</span>
-                </p>
-              </div>
-            </a>
-          ))}
+      <section data-reveal id="satwa" className="encyclopedia-section scroll-mt-20 px-5 py-16 sm:py-20 lg:px-8">
+        <div className="mx-auto max-w-6xl"><div className="encyclopedia-heading"><div><p className="eyebrow">KENALI LEBIH DEKAT</p><h2 className="section-title">Ensiklopedia Satwa</h2><p className="section-description">Setiap satwa punya cerita. Kenali ciri, habitat, dan perannya dalam keseimbangan alam.</p></div><label className="animal-search"><span aria-hidden="true">⌕</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nama satwa..." aria-label="Cari nama satwa" /></label></div>
+          <div className="animal-filters" role="group" aria-label="Filter kategori satwa">{filters.map((item) => <button type="button" key={item} onClick={() => setFilter(item)} className={filter === item ? "active" : ""}>{item}</button>)}</div>
+          <div className="animal-grid">{visibleAnimals.map((animal) => <article key={animal.name} className="animal-card"><div className="animal-image"><img src={animal.image} alt={animal.name} /><span>{animal.category}</span></div><div className="animal-content"><h3>{animal.name}</h3><p className="animal-scientific">{animal.scientific}</p><p>{animal.description}</p><div className="animal-location"><span>⌖ {animal.location}</span><a href="#zona" aria-label={`Jelajahi habitat ${animal.name}`}>↗</a></div></div></article>)}</div>
+          {visibleAnimals.length === 0 && <p className="animal-empty">Belum ada satwa yang cocok. Coba kata kunci atau kategori lain.</p>}
+          <div className="encyclopedia-footer"><span>Sekilas kekayaan fauna Nusantara.</span><a href="#zona">Lihat semua satwa ↗</a></div>
         </div>
       </section>
 
-      {/* ANIMALS */}
-      <section id="satwa" className="bg-white py-20">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <p className="font-bold uppercase tracking-widest text-green-700">
-                Ensiklopedia Satwa
-              </p>
-              <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">
-                Kenali Satwa Lebih Dekat
-              </h2>
-              <p className="mt-3 text-slate-500">
-                Cari tahu nama dan informasi menarik tentang satwa.
-              </p>
-            </div>
+      <section data-reveal id="tentang" className="about-section scroll-mt-20 px-5 py-16 sm:py-20 lg:px-8"><div className="about-layout mx-auto grid max-w-6xl items-center gap-9 md:grid-cols-2 md:gap-14"><div className="about-image"><img src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=1000&q=85" alt="Hutan tropis sebagai rumah beragam kehidupan" /><div><span>✳</span><p>Alam bukan hanya tempat tinggal. Ia adalah kehidupan yang saling terhubung.</p></div></div><div className="about-copy"><p className="eyebrow">TENTANG KAMI</p><h2 className="section-title">Kepedulian tumbuh dari perkenalan.</h2><p>JSN-EDU adalah ruang belajar tentang satwa dan keanekaragaman hayati Indonesia. Kami ingin membuat pengetahuan terasa dekat, menarik, dan mudah dipahami siapa saja.</p><p>Dengan mengenal satwa dan habitatnya, kita belajar menghargai setiap perannya—dan memulai langkah kecil untuk menjaga alam bersama.</p><ul><li>Belajar dengan rasa ingin tahu</li><li>Menghargai satwa dan habitatnya</li><li>Menumbuhkan kepedulian sehari-hari</li></ul><a href="#zona" className="about-link">Kenali JSN-EDU <span>↗</span></a></div></div></section>
 
-            <div className="w-full md:max-w-sm">
-              <label htmlFor="animal-search" className="sr-only">
-                Cari satwa
-              </label>
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-green-600">
-                <span aria-hidden="true">🔎</span>
-                <input
-                  id="animal-search"
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Cari nama atau zona satwa..."
-                  className="w-full bg-transparent text-sm outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {filteredAnimals.map((animal) => (
-              <article
-                key={animal.name}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:shadow-lg"
-              >
-                <div className="h-52 overflow-hidden bg-slate-100">
-                  <img
-                    src={animal.image}
-                    alt={animal.name}
-                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
-                  />
-                </div>
-                <div className="p-5">
-                  <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-800">
-                    {animal.category}
-                  </span>
-                  <h3 className="mt-4 text-lg font-bold">{animal.name}</h3>
-                  <p className="mt-1 text-sm italic text-slate-400">
-                    {animal.scientific}
-                  </p>
-                  <p className="mt-3 text-sm leading-6 text-slate-500">
-                    {animal.description}
-                  </p>
-                  <a
-                    href="/animals"
-                    className="mt-5 inline-block font-semibold text-green-700 hover:text-green-900"
-                  >
-                    Pelajari lebih lanjut →
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          {filteredAnimals.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-lg font-bold">Satwa tidak ditemukan.</p>
-              <p className="mt-2 text-slate-500">
-                Coba kata kunci atau nama zona yang berbeda.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* QUIZ CTA */}
-      <section id="quiz" className="px-5 py-20 lg:px-8">
-        <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl bg-green-800 px-6 py-12 sm:px-12 sm:py-16">
-          <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
-            <div className="max-w-2xl">
-              <span className="text-3xl">🧠</span>
-              <h2 className="mt-5 text-3xl font-extrabold text-white sm:text-4xl">
-                Seberapa Kenal Kamu dengan Satwa?
-              </h2>
-              <p className="mt-4 leading-7 text-green-100">
-                Uji pengetahuanmu lewat quiz interaktif dan temukan
-                fakta baru tentang dunia satwa.
-              </p>
-            </div>
-            <a
-              href="/quiz"
-              className="shrink-0 rounded-xl bg-lime-400 px-7 py-4 font-bold text-green-950 transition hover:bg-lime-300"
-            >
-              Coba Quiz Sekarang →
-            </a>
-          </div>
-        </div>
-      </section>
+      <section data-reveal id="faq" className="faq-section scroll-mt-20 px-5 py-16 sm:py-20 lg:px-8"><div className="faq-layout mx-auto grid max-w-6xl gap-8 md:grid-cols-[.7fr_1.3fr] md:gap-14"><div><p className="eyebrow">SEBELUM MENJELAJAH</p><h2 className="section-title">Ada yang ingin kamu tahu?</h2><p className="section-description">Beberapa jawaban singkat untuk menemani awal penjelajahanmu.</p></div><div className="faq-list">{faqs.map((faq, index) => <details key={faq.question} className="faq-item" open={index === 0}><summary>{faq.question}<span aria-hidden="true">+</span></summary><p>{faq.answer}</p></details>)}</div></div></section>
     </main>
   );
 }
