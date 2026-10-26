@@ -95,14 +95,6 @@ export default function ActivityLogsPage() {
     setAction(searchInput.trim());
   };
 
-  const resetFilters = () => {
-    setEventType('');
-    setActorType('');
-    setAction('');
-    setSearchInput('');
-    setPage(1);
-  };
-
   const eventColor = (type: LogEventType) => {
     if (type === 'login_failed' || type === 'access_denied' || type === 'application_error' || type === 'security_event') {
       return 'bg-rose-50 text-rose-700';
@@ -157,7 +149,6 @@ export default function ActivityLogsPage() {
                 <input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') applyFilters(); }} className="h-[42px] w-full rounded-xl border border-[var(--color-border)] bg-white pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" placeholder="Cari aksi..." />
               </label>
               <button type="button" onClick={applyFilters} className="h-[42px] rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white transition hover:bg-emerald-800">Terapkan</button>
-              <button type="button" onClick={resetFilters} className="h-[42px] rounded-xl border border-[var(--color-border)] px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">Reset</button>
             </div>
           </div>
 
