@@ -12,7 +12,6 @@ import categoriesPublicRoutes from './modules/categories/categories.public.route
 import favoritesRoutes from './modules/favorites/favorites.routes';
 import quizUserRoutes from './modules/quiz/quiz.user.routes';
 import userProfileRoutes from './modules/users/users.profile.routes';
-import trackRoutes from './modules/track/track.routes';
 
 // Routes Admin
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
@@ -22,28 +21,11 @@ import quizRoutes from './modules/quiz/quiz.routes';
 import usersRoutes from './modules/users/users.routes';
 import logsRoutes from './modules/logs/logs.routes';
 
-import { requestId } from './middleware/request-id.middleware';
-import { guestContext } from './middleware/guest-context.middleware';
-import { activityLogger } from './middleware/activity-logger.middleware';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
-import pool from './config/database';
 
 dotenv.config();
 
 const app = express();
-
-// Di belakang proxy Vercel, agar req.ip berisi IP client sebenarnya.
-app.set('trust proxy', 1);
-
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-// ================================
-// REQUEST ID
-// ================================
-app.use(requestId);
 
 // ================================
 // SECURITY MIDDLEWARE
@@ -55,18 +37,10 @@ app.use(helmet());
 // CORS: izinkan request dari frontend Next.js
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Request tanpa Origin (mis. curl, health check) tetap diizinkan.
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-      callback(null, false);
-    },
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
-    exposedHeaders: ['X-Request-Id'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
@@ -102,27 +76,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // ================================
 // LOGGER
 // ================================
-morgan.token('request-id', (req) => (req as any).requestId || '-');
-morgan.token('actor', (req) => (req as any).user?.public_id || '-');
-
-const logFormat = ':method :url :status :response-time ms - :request-id :actor';
-
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 } else {
-  app.use(morgan(logFormat));
+  app.use(morgan('combined'));
 }
-
-// ================================
-// GUEST CONTEXT
-// Identitas Guest dibuat otomatis, admin memakai token JWT.
-// ================================
-app.use(guestContext);
-
-// ================================
-// ACTIVITY LOGGER
-// ================================
-app.use(activityLogger);
 
 // ================================
 // ROOT & HEALTH CHECK
@@ -140,21 +98,12 @@ app.get('/', (_req, res) => {
   });
 });
 
-app.get('/api/health', async (_req, res) => {
-  let database: 'ok' | 'error' = 'ok';
-
-  try {
-    await pool.query('SELECT 1');
-  } catch {
-    database = 'error';
-  }
-
-  res.status(database === 'ok' ? 200 : 503).json({
-    success: database === 'ok',
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({
+    success: true,
     message: 'SATWA LYAR API berjalan dengan baik.',
     timestamp: new Date().toISOString(),
     env: process.env.NODE_ENV,
-    database,
   });
 });
 
@@ -162,11 +111,8 @@ app.get('/api/health', async (_req, res) => {
 // ROUTES: PUBLIK & USER
 // ================================
 
-// Auth (login admin, logout, session)
+// Auth (register, login, logout, me)
 app.use('/api/auth', authLimiter, authRoutes);
-
-// Tracking kunjungan halaman
-app.use('/api/track', trackRoutes);
 
 // User Profile (view profile, update profile, change password)
 app.use('/api/users', userProfileRoutes);

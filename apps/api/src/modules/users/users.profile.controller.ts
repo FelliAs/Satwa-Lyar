@@ -5,7 +5,6 @@ import { createError } from '../../middleware/error.middleware';
 
 // ========================
 // GET /api/users/profile
-// Berfungsi untuk admin maupun guest.
 // ========================
 export const getUserProfile = async (
   req: Request,
@@ -16,15 +15,19 @@ export const getUserProfile = async (
     const userId = req.user!.id;
 
     const rows = await pool.query(
-      'SELECT id, public_id, name, email, is_admin, created_at, updated_at FROM users WHERE id = ?',
+      `SELECT id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at, updated_at
+       FROM users WHERE id = ?`,
       [userId]
     );
 
     const user = rows[0];
     if (!user) {
-      return next(createError('Identitas tidak ditemukan.', 404));
+      return next(createError('User tidak ditemukan.', 404));
     }
 
+    // Statistik user
     const favResult = await pool.query(
       'SELECT COUNT(*) AS total FROM favorites WHERE user_id = ?',
       [userId]
@@ -40,21 +43,13 @@ export const getUserProfile = async (
 
     res.status(200).json({
       success: true,
-      request_id: req.requestId,
       data: {
         ...user,
-        actor_type: req.user!.actor_type,
         stats: {
           total_favorites: Number(favResult[0]?.total || 0),
           total_quiz_attempts: Number(quizResult[0]?.total_attempts || 0),
-          average_quiz_score:
-            quizResult[0]?.avg_score !== null
-              ? Math.round(Number(quizResult[0].avg_score))
-              : 0,
-          highest_quiz_score:
-            quizResult[0]?.highest_score !== null
-              ? Number(quizResult[0].highest_score)
-              : 0,
+          average_quiz_score: quizResult[0]?.avg_score !== null ? Math.round(Number(quizResult[0].avg_score)) : 0,
+          highest_quiz_score: quizResult[0]?.highest_score !== null ? Number(quizResult[0].highest_score) : 0,
         },
       },
     });
@@ -65,7 +60,6 @@ export const getUserProfile = async (
 
 // ========================
 // PUT /api/users/profile
-// Hanya admin yang memiliki profil yang bisa diubah.
 // ========================
 export const updateUserProfile = async (
   req: Request,
@@ -74,16 +68,6 @@ export const updateUserProfile = async (
 ): Promise<void> => {
   try {
     const userId = req.user!.id;
-
-    if (Number(req.user!.is_admin) !== 1) {
-      return next(
-        createError(
-          'Identitas guest tidak memiliki profil yang dapat diubah.',
-          400
-        )
-      );
-    }
-
     const { name } = req.body;
 
     await pool.query(
@@ -92,14 +76,16 @@ export const updateUserProfile = async (
     );
 
     const rows = await pool.query(
-      'SELECT id, public_id, name, email, is_admin, created_at, updated_at FROM users WHERE id = ?',
+      `SELECT id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at, updated_at
+       FROM users WHERE id = ?`,
       [userId]
     );
 
     res.status(200).json({
       success: true,
       message: 'Profil berhasil diperbarui.',
-      request_id: req.requestId,
       data: rows[0],
     });
   } catch (error) {
@@ -109,7 +95,6 @@ export const updateUserProfile = async (
 
 // ========================
 // PUT /api/users/password
-// Hanya admin yang memiliki password.
 // ========================
 export const changeUserPassword = async (
   req: Request,
@@ -120,20 +105,11 @@ export const changeUserPassword = async (
     const userId = req.user!.id;
     const { current_password, new_password } = req.body;
 
-    const rows = await pool.query(
-      'SELECT password FROM users WHERE id = ?',
-      [userId]
-    );
+    const rows = await pool.query('SELECT password FROM users WHERE id = ?', [userId]);
     const user = rows[0];
 
     if (!user) {
-      return next(createError('Identitas tidak ditemukan.', 404));
-    }
-
-    if (!user.password) {
-      return next(
-        createError('Identitas guest tidak memiliki password.', 400)
-      );
+      return next(createError('User tidak ditemukan.', 404));
     }
 
     const isMatch = await bcrypt.compare(current_password, user.password);
@@ -150,9 +126,7 @@ export const changeUserPassword = async (
 
     res.status(200).json({
       success: true,
-      message:
-        'Password berhasil diubah. Silakan gunakan password baru pada login berikutnya.',
-      request_id: req.requestId,
+      message: 'Password berhasil diubah. Silakan gunakan password baru pada login berikutnya.',
     });
   } catch (error) {
     next(error);
