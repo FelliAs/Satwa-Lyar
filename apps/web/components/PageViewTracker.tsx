@@ -19,10 +19,10 @@ export default function PageViewTracker() {
 
     void apiRequest("/api/track/page-view", {
       method: "POST",
-      body: {
+      body: JSON.stringify({
         path: pathname,
         referrer: document.referrer || null,
-      },
+      }),
     }).catch(() => {
       // tracking bersifat best-effort, tidak boleh mengganggu halaman
     });
