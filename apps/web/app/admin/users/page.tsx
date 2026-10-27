@@ -37,7 +37,7 @@ export default function AdminUsersPage() {
         page,
         limit: pageSize,
         search: search.trim() || undefined,
-        role: 'admin',
+        scope: 'admin',
       });
       setAccounts(response.data ?? []);
       setTotal(response.pagination?.total ?? 0);
@@ -82,10 +82,9 @@ export default function AdminUsersPage() {
     setNoticeIsError(false);
     try {
       if (editing) {
-        const payload: { name: string; email: string; password?: string; role: 'admin' } = {
+        const payload: { name: string; email: string; password?: string } = {
           name: form.name.trim(),
           email: form.email.trim(),
-          role: 'admin',
         };
         if (form.password) payload.password = form.password;
         const response = await adminAccountsApi.update(editing.id, payload);
@@ -95,7 +94,6 @@ export default function AdminUsersPage() {
           name: form.name.trim(),
           email: form.email.trim(),
           password: form.password,
-          role: 'admin',
         });
         setNotice(response.message || 'Administrator berhasil ditambahkan.');
       }
