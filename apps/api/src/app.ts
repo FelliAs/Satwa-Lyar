@@ -13,6 +13,7 @@ import favoritesRoutes from './modules/favorites/favorites.routes';
 import quizUserRoutes from './modules/quiz/quiz.user.routes';
 import userProfileRoutes from './modules/users/users.profile.routes';
 import trackRoutes from './modules/track/track.routes';
+import highlightsPublicRoutes from './modules/highlights/highlights.public.routes';
 
 // Routes Admin
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
@@ -21,6 +22,7 @@ import categoriesRoutes from './modules/categories/categories.routes';
 import quizRoutes from './modules/quiz/quiz.routes';
 import usersRoutes from './modules/users/users.routes';
 import logsRoutes from './modules/logs/logs.routes';
+import highlightsRoutes from './modules/highlights/highlights.routes';
 
 import { requestId } from './middleware/request-id.middleware';
 import { guestContext } from './middleware/guest-context.middleware';
@@ -174,6 +176,9 @@ app.use('/api/users', userProfileRoutes);
 // Public Animals (browse, search, filter zona & konservasi, detail satwa)
 app.use('/api/animals', animalsPublicRoutes);
 
+// Public animal highlights for landing page and destination zones
+app.use('/api/highlights', highlightsPublicRoutes);
+
 // Public Categories (4 zona fauna: Air Tawar, Serangga, Reptil, Burung)
 app.use('/api/categories', categoriesPublicRoutes);
 
@@ -192,6 +197,7 @@ app.use('/api/admin/categories', categoriesRoutes);
 app.use('/api/admin/quiz', quizRoutes);
 app.use('/api/admin/users', usersRoutes);
 app.use('/api/admin/logs', logsRoutes);
+app.use('/api/admin/highlights', highlightsRoutes);
 
 // ================================
 // ERROR HANDLERS
