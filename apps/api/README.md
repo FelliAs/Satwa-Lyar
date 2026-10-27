@@ -221,6 +221,7 @@ dipotong otomatis bila terlalu besar.
 |---|---|---|---|
 | GET | `/api/animals` | Publik | Browse satwa, pagination (`page`, `limit`), search (`search`), filter zona (`zone` / `category_id`), filter konservasi (`status`), sorting (`sort`). Status `is_favorite` mengikuti identitas aktif. |
 | GET | `/api/animals/:id` | Publik | Detail lengkap satwa, status favorit personal, dan rekomendasi satwa sejenis |
+| GET | `/api/highlights?location=landing` | Publik | Daftar satwa highlight aktif untuk landing page atau slug zona |
 
 ### 4. Zona / Kategori (`/api/categories`)
 | Method | Endpoint | Akses | Keterangan |
@@ -278,6 +279,10 @@ dipotong otomatis bila terlalu besar.
 | DELETE | `/api/admin/users/:id` | Admin | Hapus akun admin |
 | GET | `/api/admin/logs` | Admin | Baca & filter log aktivitas (`event_type`, `actor_type`, `actor_public_id`, `action`, `endpoint`, `from`, `to`, `q`) |
 | GET | `/api/admin/logs/summary` | Admin | Ringkasan log per event type & actor type (`days=7`) |
+| GET | `/api/admin/highlights` | Admin | Daftar highlight satwa, dapat difilter dengan `location` |
+| POST | `/api/admin/highlights` | Admin | Membuat highlight (`animal_id`, `location`, `is_active`, `priority`) |
+| PATCH | `/api/admin/highlights/:id` | Admin | Mengubah konfigurasi highlight |
+| DELETE | `/api/admin/highlights/:id` | Admin | Menghapus highlight |
 
 Semua aksi admin tercatat pada `logs_activity` dengan `event_type = 'admin_action'`
 beserta ringkasan perubahan sebelum/sesudah (tanpa password hash atau token).
