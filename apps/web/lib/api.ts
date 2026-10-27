@@ -25,6 +25,7 @@
 
 import type {
   AdminUser,
+  AdminAccount,
   Animal,
   AnimalListResponse,
   AnimalMutationResponse,
@@ -33,6 +34,9 @@ import type {
   DashboardResponse,
   LoginResponse,
   LogsResponse,
+  Pagination,
+  Quiz,
+  QuizQuestion,
 } from './types';
 
 export const API_BASE_URL = (
@@ -265,6 +269,55 @@ export const dashboardApi = {
 export const categoriesApi = {
   getAll: (signal?: AbortSignal) =>
     apiRequest<ApiSuccess<Category[]>>('/api/admin/categories', { signal }),
+  create: (input: Pick<Category, 'name' | 'slug'> & Partial<Pick<Category, 'description' | 'icon'>>, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<Category>>('/api/admin/categories', { method: 'POST', body: JSON.stringify(input), signal }),
+  update: (id: number, input: Partial<Pick<Category, 'name' | 'slug' | 'description' | 'icon'>>, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<Category>>(`/api/admin/categories/${id}`, { method: 'PUT', body: JSON.stringify(input), signal }),
+  remove: (id: number, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<null>>(`/api/admin/categories/${id}`, { method: 'DELETE', signal }),
+};
+
+export interface QuizQuestionInput {
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_answer: QuizQuestion['correct_answer'];
+  order_num?: number;
+}
+
+export const quizApi = {
+  list: (signal?: AbortSignal) => apiRequest<ApiSuccess<Quiz[]>>('/api/admin/quiz', { signal }),
+  getById: (id: number, signal?: AbortSignal) => apiRequest<ApiSuccess<Quiz>>(`/api/admin/quiz/${id}`, { signal }),
+  create: (input: { title: string; description?: string; category_id?: number | null; is_active: boolean }, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<Quiz>>('/api/admin/quiz', { method: 'POST', body: JSON.stringify(input), signal }),
+  update: (id: number, input: { title: string; description?: string; category_id?: number | null; is_active: boolean }, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<Quiz>>(`/api/admin/quiz/${id}`, { method: 'PUT', body: JSON.stringify(input), signal }),
+  remove: (id: number, signal?: AbortSignal) => apiRequest<ApiSuccess<null>>(`/api/admin/quiz/${id}`, { method: 'DELETE', signal }),
+  createQuestion: (id: number, input: QuizQuestionInput, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<QuizQuestion>>(`/api/admin/quiz/${id}/questions`, { method: 'POST', body: JSON.stringify(input), signal }),
+  updateQuestion: (id: number, questionId: number, input: QuizQuestionInput, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<QuizQuestion>>(`/api/admin/quiz/${id}/questions/${questionId}`, { method: 'PUT', body: JSON.stringify(input), signal }),
+  removeQuestion: (id: number, questionId: number, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<null>>(`/api/admin/quiz/${id}/questions/${questionId}`, { method: 'DELETE', signal }),
+};
+
+export interface AdminAccountsQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  scope?: 'admin' | 'guest' | 'all';
+}
+
+export const adminAccountsApi = {
+  list: (params: AdminAccountsQuery, signal?: AbortSignal) =>
+    apiRequest<{ success: boolean; data: AdminAccount[]; pagination: Pagination }>(`/api/admin/users${buildQuery(params)}`, { signal }),
+  create: (input: { name: string; email: string; password: string }, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<AdminAccount>>('/api/admin/users', { method: 'POST', body: JSON.stringify(input), signal }),
+  update: (id: number, input: Partial<{ name: string; email: string; password: string }>, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<AdminAccount>>(`/api/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(input), signal }),
+  remove: (id: number, signal?: AbortSignal) => apiRequest<ApiSuccess<null>>(`/api/admin/users/${id}`, { method: 'DELETE', signal }),
 };
 
 /* =========================

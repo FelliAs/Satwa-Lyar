@@ -1,4 +1,4 @@
-import { LayoutDashboard, PawPrint, type LucideIcon } from 'lucide-react';
+import { Activity, ClipboardList, FolderTree, LayoutDashboard, PawPrint, Shield, type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -26,6 +26,34 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/admin/animals',
     icon: PawPrint,
     description: 'Tambah, ubah, dan hapus data satwa',
+  },
+  {
+    label: 'Kelola Kategori',
+    shortLabel: 'Kategori',
+    href: '/admin/categories',
+    icon: FolderTree,
+    description: 'Kelola kategori dan wahana satwa',
+  },
+  {
+    label: 'Kelola Quiz',
+    shortLabel: 'Quiz',
+    href: '/admin/quiz',
+    icon: ClipboardList,
+    description: 'Kelola quiz dan pertanyaannya',
+  },
+  {
+    label: 'Administrator',
+    shortLabel: 'Admin',
+    href: '/admin/users',
+    icon: Shield,
+    description: 'Kelola akun administrator',
+  },
+  {
+    label: 'Activity Logs',
+    shortLabel: 'Logs',
+    href: '/admin/logs',
+    icon: Activity,
+    description: 'Pantau aktivitas dan permintaan sistem',
   },
 ];
 

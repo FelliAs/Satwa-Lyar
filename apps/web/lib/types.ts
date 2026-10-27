@@ -77,6 +77,40 @@ export interface Category {
   created_at?: string;
 }
 
+export interface AdminAccount {
+  id: number;
+  public_id?: string;
+  name: string;
+  email: string;
+  is_admin: number | boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface QuizQuestion {
+  id: number;
+  quiz_id?: number;
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_answer: 'A' | 'B' | 'C' | 'D';
+  order_num: number;
+}
+
+export interface Quiz {
+  id: number;
+  title: string;
+  description?: string | null;
+  category_id?: number | null;
+  category_name?: string | null;
+  is_active: number | boolean;
+  total_questions?: number;
+  created_at?: string;
+  questions?: QuizQuestion[];
+}
+
 /* =========================
  * SATWA
  * ========================= */
