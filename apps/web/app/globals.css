@@ -5,6 +5,29 @@
 ========================= */
 
 :root {
+  /* Admin design tokens */
+  --color-primary: #059669;
+  --color-primary-dark: #047857;
+  --color-primary-deep: #064e3b;
+  --color-primary-light: #10b981;
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-accent-gold: #d97706;
+  --color-sidebar: #061e12;
+  --color-sidebar-2: #0a2d1c;
+  --color-sidebar-border: rgba(255, 255, 255, 0.07);
+  --color-sidebar-text: #e2f0e7;
+  --color-sidebar-muted: #6ee7b7;
+  --color-bg: #f4f7f4;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f9fbf9;
+  --color-border: #e2e8e3;
+  --color-border-strong: #cbd5ce;
+  --color-text: #0f1d15;
+  --color-text-secondary: #475a50;
+  --color-text-muted: #82958a;
+
   --background: #faf9f4;
   --foreground: #27352b;
   --forest: #315b40;
@@ -12,6 +35,55 @@
   --earth: #a16b3b;
   --muted: #73796e;
   --border: #e5e7dc;
+}
+
+/* Shared admin surfaces and controls */
+.bg-mesh-nature {
+  background-color: #f3f6f3;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.12) 0, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(5, 150, 105, 0.08) 0, transparent 40%),
+    radial-gradient(at 50% 100%, rgba(217, 119, 6, 0.05) 0, transparent 50%);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 20px 25px -5px rgba(6, 78, 59, 0.06), 0 0 0 1px rgba(6, 78, 59, 0.04);
+}
+
+.sl-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1.25rem;
+}
+
+.sl-card-hover {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.sl-card-hover:hover {
+  border-color: var(--color-primary-200);
+  box-shadow: 0 12px 30px rgba(6, 78, 59, 0.08);
+  transform: translateY(-1px);
+}
+
+.btn-primary-gradient {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff;
+}
+
+.btn-primary-gradient:hover {
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
+}
+
+.spinner {
+  animation: admin-spin 0.9s linear infinite;
+}
+
+@keyframes admin-spin {
+  to { transform: rotate(360deg); }
 }
 
 @theme inline {
