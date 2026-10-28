@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AnimalHighlights from "@/components/AnimalHighlights";
 
 const destinations = [
   { name: "Dunia Air Tawar", kicker: "SUNGAI & DANAU", description: "Menyelami kehidupan yang mengalir di perairan kita.", image: "https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=900&q=85", href: "/airtawar" },
@@ -10,13 +11,6 @@ const destinations = [
   { name: "Farm House", kicker: "KEHIDUPAN BERSAMA", description: "Belajar tentang satwa ternak dan cara merawatnya.", image: "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=900&q=85", href: "/farmhouse" },
 ];
 
-const animals = [
-  { name: "Jalak Bali", scientific: "Leucopsar rothschildi", category: "Burung", location: "Bali", image: "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=900&q=85", description: "Bulu putih dan jambul biru di sekitar mata menjadikan burung endemik Pulau Bali ini mudah dikenali." },
-  { name: "Anoa dataran rendah", scientific: "Bubalus depressicornis", category: "Mamalia", location: "Sulawesi", image: "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=900&q=85", description: "Kerabat kerbau bertubuh kecil ini hidup di hutan Sulawesi dan memerlukan habitat yang lestari." },
-  { name: "Komodo", scientific: "Varanus komodoensis", category: "Reptil", location: "Nusa Tenggara Timur", image: "https://images.unsplash.com/photo-1570741066052-817c6de995c8?w=900&q=85", description: "Kadal terbesar di dunia ini hidup di beberapa pulau Nusa Tenggara dan menjadi satwa kebanggaan Indonesia." },
-];
-
-const filters = ["Semua satwa", "Mamalia", "Burung", "Reptil", "Ikan", "Serangga"];
 const faqs = [
   { question: "Apa itu JSN-EDU?", answer: "JSN-EDU adalah ruang belajar digital untuk mengenal satwa, habitat, serta peran setiap makhluk hidup dalam menjaga keseimbangan alam." },
   { question: "Siapa yang bisa belajar di sini?", answer: "Semua orang bisa menjelajahi JSN-EDU, termasuk pelajar, keluarga, pendidik, dan siapa pun yang ingin mengenal alam lebih dekat." },
@@ -25,8 +19,6 @@ const faqs = [
 ];
 
 export default function HomePage() {
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("Semua satwa");
   const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,11 +33,6 @@ export default function HomePage() {
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
   }, []);
-
-  const visibleAnimals = animals.filter((animal) =>
-    (filter === "Semua satwa" || animal.category === filter) &&
-    `${animal.name} ${animal.category} ${animal.scientific}`.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <main className="overflow-hidden bg-[#f6f5ed] text-[#183d32]">
@@ -75,6 +62,10 @@ export default function HomePage() {
         <p className="destination-footnote">Mulai dari rasa ingin tahu. Temukan cerita yang paling dekat denganmu.</p>
       </section>
 
+      <div data-reveal id="satwa" className="scroll-mt-20">
+        <AnimalHighlights location="landing" title="Ensiklopedia Satwa" description="Setiap satwa punya cerita. Kenali ciri, habitat, dan perannya dalam keseimbangan alam." />
+      </div>
+      {/*
       <section data-reveal id="satwa" className="encyclopedia-section scroll-mt-20 px-5 py-16 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-6xl"><div className="encyclopedia-heading"><div><p className="eyebrow">KENALI LEBIH DEKAT</p><h2 className="section-title">Ensiklopedia Satwa</h2><p className="section-description">Setiap satwa punya cerita. Kenali ciri, habitat, dan perannya dalam keseimbangan alam.</p></div><label className="animal-search"><span aria-hidden="true">⌕</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nama satwa..." aria-label="Cari nama satwa" /></label></div>
           <div className="animal-filters" role="group" aria-label="Filter kategori satwa">{filters.map((item) => <button type="button" key={item} onClick={() => setFilter(item)} className={filter === item ? "active" : ""}>{item}</button>)}</div>
@@ -82,7 +73,7 @@ export default function HomePage() {
           {visibleAnimals.length === 0 && <p className="animal-empty">Belum ada satwa yang cocok. Coba kata kunci atau kategori lain.</p>}
           <div className="encyclopedia-footer"><span>Sekilas kekayaan fauna Nusantara.</span><a href="#zona">Lihat semua satwa ↗</a></div>
         </div>
-      </section>
+      </section> */}
 
       <section data-reveal id="tentang" className="about-section scroll-mt-20 px-5 py-16 sm:py-20 lg:px-8"><div className="about-layout mx-auto grid max-w-6xl items-center gap-9 md:grid-cols-2 md:gap-14"><div className="about-image"><img src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=1000&q=85" alt="Hutan tropis sebagai rumah beragam kehidupan" /><div><span>✳</span><p>Alam bukan hanya tempat tinggal. Ia adalah kehidupan yang saling terhubung.</p></div></div><div className="about-copy"><p className="eyebrow">TENTANG KAMI</p><h2 className="section-title">Kepedulian tumbuh dari perkenalan.</h2><p>JSN-EDU adalah ruang belajar tentang satwa dan keanekaragaman hayati Indonesia. Kami ingin membuat pengetahuan terasa dekat, menarik, dan mudah dipahami siapa saja.</p><p>Dengan mengenal satwa dan habitatnya, kita belajar menghargai setiap perannya—dan memulai langkah kecil untuk menjaga alam bersama.</p><ul><li>Belajar dengan rasa ingin tahu</li><li>Menghargai satwa dan habitatnya</li><li>Menumbuhkan kepedulian sehari-hari</li></ul><a href="#zona" className="about-link">Kenali JSN-EDU <span>↗</span></a></div></div></section>
 

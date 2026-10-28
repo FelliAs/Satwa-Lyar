@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AnimalHighlights from "@/components/AnimalHighlights";
 
 const insects = [
   {
@@ -216,6 +217,8 @@ export default function InsectsPage() {
       </section>
 
       {/* INSECT EXPLORER */}
+      <AnimalHighlights location="serangga" title="Highlight Satwa" description="Kenali satwa pilihan dari zona ini dan jelajahi informasi lengkapnya." />
+      {false && (
       <section id="jelajahi" className="bg-white py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-5 lg:px-10">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -343,6 +346,7 @@ export default function InsectsPage() {
           )}
         </div>
       </section>
+      )}
 
       {/* EDUCATION */}
       <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20 lg:px-10">

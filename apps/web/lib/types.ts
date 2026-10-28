@@ -155,6 +155,22 @@ export interface Animal {
   updated_at?: string;
 }
 
+export interface AnimalHighlight {
+  id: number;
+  name: string;
+  scientific_name?: string | null;
+  description?: string | null;
+  priority: number;
+  image_url?: string | null;
+  image_key?: string | null;
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+    icon?: string | null;
+  };
+}
+
 export interface AnimalListResponse extends ApiSuccess<Animal[]> {
   pagination: Pagination;
 }

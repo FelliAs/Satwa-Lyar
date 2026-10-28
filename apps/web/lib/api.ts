@@ -29,6 +29,7 @@ import type {
   Animal,
   AnimalListResponse,
   AnimalMutationResponse,
+  AnimalHighlight,
   ApiSuccess,
   Category,
   DashboardResponse,
@@ -424,6 +425,14 @@ export const animalsApi = {
 
   removeImage: (id: number, signal?: AbortSignal) =>
     apiRequest<ApiSuccess<null>>(`/api/admin/animals/${id}/image`, { method: 'DELETE', signal }),
+};
+
+export const highlightsApi = {
+  list: (location: string, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<AnimalHighlight[]>>(
+      `/api/highlights?location=${encodeURIComponent(location)}`,
+      { signal, skipAuthRedirect: true }
+    ),
 };
 
 /* =========================
