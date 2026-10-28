@@ -83,7 +83,8 @@ export const login = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
     // Cari user berdasarkan email dengan kolom yang ada di database (is_admin)
     const rows = await pool.query(
