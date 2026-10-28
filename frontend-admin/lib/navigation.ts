@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   PawPrint,
   Shield,
+  Star,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -41,6 +42,13 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/admin/categories',
     icon: FolderTree,
     description: 'Kelola kategori dan wahana satwa',
+  },
+  {
+    label: 'Highlight Satwa',
+    shortLabel: 'Highlight',
+    href: '/admin/highlights',
+    icon: Star,
+    description: 'Kelola satwa unggulan dan lokasi tampil',
   },
   {
     label: 'Kelola Quiz',

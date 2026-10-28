@@ -59,6 +59,12 @@ export default function AdminUsersPage() {
     };
   }, [loadAccounts]);
 
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(''), 1500);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
   const openCreate = () => {
     setEditing(null);
     setForm(blankForm);
@@ -81,6 +87,7 @@ export default function AdminUsersPage() {
     setNotice('');
     setNoticeIsError(false);
     try {
+      let mutatedId = editing?.id;
       if (editing) {
         const payload: { name: string; email: string; password?: string; role: 'admin' } = {
           name: form.name.trim(),
@@ -90,6 +97,7 @@ export default function AdminUsersPage() {
         if (form.password) payload.password = form.password;
         const response = await adminAccountsApi.update(editing.id, payload);
         setNotice(response.message || 'Akun administrator berhasil diperbarui.');
+        mutatedId = response.data?.id ?? editing.id;
       } else {
         const response = await adminAccountsApi.create({
           name: form.name.trim(),
@@ -98,9 +106,18 @@ export default function AdminUsersPage() {
           role: 'admin',
         });
         setNotice(response.message || 'Administrator berhasil ditambahkan.');
+        mutatedId = response.data?.id;
       }
       setDialogOpen(false);
+      setPage(1);
+      setSearch('');
       await loadAccounts();
+      if (mutatedId) {
+        setAccounts((current) => {
+          const moved = current.find((account) => account.id === mutatedId);
+          return moved ? [moved, ...current.filter((account) => account.id !== moved.id)] : current;
+        });
+      }
     } catch (err) {
       setNotice(err instanceof Error ? err.message : 'Gagal menyimpan akun administrator.');
       setNoticeIsError(true);

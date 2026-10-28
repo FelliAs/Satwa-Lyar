@@ -57,9 +57,11 @@ const runValidation = async () => {
     );
 
     // Periksa Admin Seed
-    const [adminUser] = await conn.query('SELECT id, name, email, role FROM users WHERE email = ?', [
-      'admin@satwalyar.com',
-    ]);
+    const [adminUser] = await conn.query(
+      `SELECT id, name, email, IF(is_admin = 1, 'admin', 'user') AS role
+       FROM users WHERE email = ?`,
+      ['admin@satwalyar.com']
+    );
     test(
       '3. Akun Admin Default di Database',
       !!adminUser && adminUser.role === 'admin',

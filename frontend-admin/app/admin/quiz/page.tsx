@@ -69,6 +69,12 @@ export default function QuizPage() {
     };
   }, [loadData]);
 
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(''), 1500);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
   const openCreate = () => {
     setSelected(null);
     setQuizForm(emptyQuizForm);
@@ -117,11 +123,21 @@ export default function QuizPage() {
         setSelected(refreshed.data);
         setNotice('Informasi quiz berhasil diperbarui.');
         await loadData();
+        setQuizzes((current) => {
+          const moved = current.find((quiz) => quiz.id === selected.id);
+          return moved ? [moved, ...current.filter((quiz) => quiz.id !== moved.id)] : current;
+        });
       } else {
         const response = await quizApi.create(payload);
         setNotice(response.message || 'Quiz berhasil ditambahkan.');
         setDialogOpen(false);
         await loadData();
+        if (response.data?.id) {
+          setQuizzes((current) => {
+            const moved = current.find((quiz) => quiz.id === response.data.id);
+            return moved ? [moved, ...current.filter((quiz) => quiz.id !== moved.id)] : current;
+          });
+        }
       }
     } catch (err) {
       setNotice(err instanceof Error ? err.message : 'Gagal menyimpan quiz.');
@@ -129,6 +145,12 @@ export default function QuizPage() {
       setSavingQuiz(false);
     }
   };
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(''), 1500);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
 
   const resetQuestionForm = () => {
     setQuestionForm({ ...emptyQuestionForm, order_num: (selected?.questions?.length ?? 0) + 1 });

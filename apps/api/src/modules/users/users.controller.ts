@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
 import pool from '../../config/database';
 import { createError } from '../../middleware/error.middleware';
 
@@ -27,8 +28,8 @@ export const getAllUsers = async (
     }
 
     if (role && ['admin', 'user'].includes(role)) {
-      whereClause += ' AND role = ?';
-      params.push(role);
+      whereClause += ' AND is_admin = ?';
+      params.push(role === 'admin' ? 1 : 0);
     }
 
     const countResult = await pool.query(
@@ -37,7 +38,9 @@ export const getAllUsers = async (
     );
 
     const rows = await pool.query(
-      `SELECT id, name, email, role, created_at, updated_at
+      `SELECT id, public_id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at, updated_at
        FROM users ${whereClause}
        ORDER BY created_at DESC
        LIMIT ? OFFSET ?`,
@@ -72,7 +75,9 @@ export const getUserById = async (
   try {
     const { id } = req.params;
     const rows = await pool.query(
-      `SELECT id, name, email, role, created_at, updated_at
+      `SELECT id, public_id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at, updated_at
        FROM users WHERE id = ?`,
       [id]
     );
@@ -128,12 +133,16 @@ export const createUser = async (
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`,
-      [name, email, hashedPassword, role]
+      `INSERT INTO users (public_id, name, email, password, is_admin)
+       VALUES (?, ?, ?, ?, ?)`,
+      [`usr_${randomUUID()}`, name, email, hashedPassword, role === 'admin' ? 1 : 0]
     );
 
     const newUser = await pool.query(
-      'SELECT id, name, email, role, created_at FROM users WHERE id = ?',
+      `SELECT id, public_id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at
+       FROM users WHERE id = ?`,
       [result.insertId]
     );
 
@@ -184,15 +193,24 @@ export const updateUser = async (
       `UPDATE users SET
          name = COALESCE(?, name),
          email = COALESCE(?, email),
-         role = COALESCE(?, role),
+         is_admin = COALESCE(?, is_admin),
          password = COALESCE(?, password),
          updated_at = NOW()
        WHERE id = ?`,
-      [name, email, role, hashedPassword, id]
+      [
+        name,
+        email,
+        role === undefined ? null : role === 'admin' ? 1 : 0,
+        hashedPassword,
+        id,
+      ]
     );
 
     const updated = await pool.query(
-      'SELECT id, name, email, role, created_at, updated_at FROM users WHERE id = ?',
+      `SELECT id, public_id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at, updated_at
+       FROM users WHERE id = ?`,
       [id]
     );
 

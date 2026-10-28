@@ -9,10 +9,10 @@ import {
   UploadCloud,
   X,
   FileImage,
-  RefreshCw,
 } from 'lucide-react';
 import type { Animal, Category } from '@/lib/types';
 import { CONSERVATION_STATUS_OPTIONS, formatNumber } from '@/lib/utils';
+import AnimalImageCropDialog from './AnimalImageCropDialog';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB — sesuai batas backend
 
@@ -42,6 +42,7 @@ export default function AnimalForm({
 }: AnimalFormProps) {
   const [form, setForm] = useState(() => buildInitialForm(animal));
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>(animal?.image_url ?? '');
   const [removeImage, setRemoveImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -54,11 +55,11 @@ export default function AnimalForm({
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !submitting) onClose();
+      if (e.key === 'Escape' && !submitting && !pendingCropFile) onClose();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [submitting, onClose]);
+  }, [submitting, pendingCropFile, onClose]);
 
   useEffect(() => {
     if (!imageFile || !preview.startsWith('blob:')) return;
@@ -86,18 +87,27 @@ export default function AnimalForm({
 
     if (!isImageMime && !isImageExt) {
       setError('Format file harus berupa gambar (JPG, PNG, WEBP, atau GIF).');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
       setError('Ukuran gambar melebihi batas maksimal 5 MB.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
     setError('');
+    setPendingCropFile(file);
+  };
+
+  const handleCropConfirm = (croppedFile: File) => {
     setRemoveImage(false);
-    setImageFile(file);
-    setPreview(URL.createObjectURL(file));
+    setImageFile(croppedFile);
+    setPreview(URL.createObjectURL(croppedFile));
+    setPendingCropFile(null);
+    setError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,7 +200,8 @@ export default function AnimalForm({
     }`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4">
+    <>
+      <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4">
       {/* Backdrop */}
       <div
         className="fade-in-overlay absolute inset-0 bg-black/60 backdrop-blur-xs"
@@ -483,6 +494,17 @@ export default function AnimalForm({
           </div>
         </form>
       </div>
-    </div>
+      </div>
+      {pendingCropFile && (
+        <AnimalImageCropDialog
+          file={pendingCropFile}
+          onCancel={() => {
+            setPendingCropFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+          }}
+          onConfirm={handleCropConfirm}
+        />
+      )}
+    </>
   );
 }

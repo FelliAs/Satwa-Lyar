@@ -15,7 +15,10 @@ export const getUserProfile = async (
     const userId = req.user!.id;
 
     const rows = await pool.query(
-      'SELECT id, name, email, role, created_at, updated_at FROM users WHERE id = ?',
+      `SELECT id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at, updated_at
+       FROM users WHERE id = ?`,
       [userId]
     );
 
@@ -73,7 +76,10 @@ export const updateUserProfile = async (
     );
 
     const rows = await pool.query(
-      'SELECT id, name, email, role, created_at, updated_at FROM users WHERE id = ?',
+      `SELECT id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at, updated_at
+       FROM users WHERE id = ?`,
       [userId]
     );
 

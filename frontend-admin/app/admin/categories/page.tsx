@@ -50,6 +50,12 @@ export default function CategoriesPage() {
     };
   }, [loadCategories]);
 
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(''), 1500);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
   const openCreate = () => {
     setEditing(null);
     setForm(emptyForm);
@@ -86,6 +92,12 @@ export default function CategoriesPage() {
       setNotice(response.message || (editing ? 'Kategori diperbarui.' : 'Kategori ditambahkan.'));
       setDialogOpen(false);
       await loadCategories();
+      if (response.data?.id) {
+        setCategories((current) => {
+          const moved = current.find((category) => category.id === response.data.id);
+          return moved ? [moved, ...current.filter((category) => category.id !== moved.id)] : current;
+        });
+      }
     } catch (err) {
       setNotice(err instanceof Error ? err.message : 'Gagal menyimpan kategori.');
     } finally {

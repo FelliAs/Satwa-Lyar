@@ -185,6 +185,8 @@ export default function AnimalsPage() {
 
     setFormOpen(false);
     setEditingAnimal(null);
+    setPage(1);
+    setSort('newest');
 
     // Muat ulang data agar tampilan konsisten dengan server.
     setReloadKey((key) => key + 1);

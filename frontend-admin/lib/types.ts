@@ -164,6 +164,39 @@ export interface AnimalMutationResponse extends ApiSuccess<Animal> {
   message: string;
 }
 
+export type HighlightLocation = 'landing-page' | 'air-tawar' | 'burung' | 'farmhouse' | 'reptil' | 'serangga';
+
+export interface AnimalHighlight {
+  id: number;
+  animal_id: number;
+  location: HighlightLocation;
+  is_active: boolean;
+  priority: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface HighlightAnimalRow {
+  id: number;
+  name: string;
+  scientific_name?: string | null;
+  image_key?: string | null;
+  image_url?: string | null;
+  category_name?: string | null;
+  highlights: AnimalHighlight[];
+}
+
+export interface HighlightListResponse extends ApiSuccess<HighlightAnimalRow[]> {}
+export interface HighlightMutationResponse extends ApiSuccess<AnimalHighlight> {
+  message: string;
+}
+export interface HighlightPayload {
+  animal_id: number;
+  location: HighlightLocation;
+  is_active: boolean;
+  priority: number;
+}
+
 /** Field form mengikuti kolom tabel `animals` pada database. */
 export interface AnimalFormValues {
   category_id: number | '';

@@ -23,7 +23,7 @@ export const getDashboardStats = async (
     ] = await Promise.all([
       pool.query('SELECT COUNT(*) AS total FROM animals'),
       pool.query('SELECT COUNT(*) AS total FROM categories'),
-      pool.query("SELECT COUNT(*) AS total FROM users WHERE role = 'user'"),
+      pool.query('SELECT COUNT(*) AS total FROM users WHERE is_admin = 0'),
       pool.query('SELECT COUNT(*) AS total FROM quizzes'),
 
       // 5 fauna terbaru
@@ -37,8 +37,8 @@ export const getDashboardStats = async (
 
       // 5 user terbaru
       pool.query(
-        `SELECT id, name, email, created_at
-         FROM users WHERE role = 'user'
+        `SELECT id, name, email, created_at, 'user' AS role
+         FROM users WHERE is_admin = 0
          ORDER BY created_at DESC LIMIT 5`
       ),
 
@@ -52,7 +52,7 @@ export const getDashboardStats = async (
 
       // Jumlah user berdasarkan role
       pool.query(
-        `SELECT role, COUNT(*) AS total FROM users GROUP BY role`
+        `SELECT IF(is_admin = 1, 'admin', 'user') AS role, COUNT(*) AS total FROM users GROUP BY is_admin`
       ),
     ]);
 

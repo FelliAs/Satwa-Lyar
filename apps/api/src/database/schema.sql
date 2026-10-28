@@ -12,14 +12,17 @@
 -- ============================================
 CREATE TABLE IF NOT EXISTS users (
   id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  public_id   VARCHAR(64) NOT NULL,
   name        VARCHAR(255) NOT NULL,
   email       VARCHAR(255) NOT NULL,
   password    VARCHAR(255) NOT NULL,
-  role        ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+  is_admin    TINYINT(1) NOT NULL DEFAULT 0,
   created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_users_email (email)
+  UNIQUE KEY uq_users_email (email),
+  UNIQUE KEY uq_users_public_id (public_id),
+  KEY idx_users_is_admin (is_admin)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -60,6 +63,25 @@ CREATE TABLE IF NOT EXISTS animals (
   CONSTRAINT fk_animals_category
     FOREIGN KEY (category_id) REFERENCES categories (id)
     ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- TABLE: animal_highlights
+-- ============================================
+CREATE TABLE IF NOT EXISTS animal_highlights (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  animal_id   INT UNSIGNED NOT NULL,
+  location    ENUM('landing-page','air-tawar','burung','farmhouse','reptil','serangga') NOT NULL,
+  is_active   TINYINT(1) NOT NULL DEFAULT 1,
+  priority    INT NOT NULL DEFAULT 0,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_animal_highlight_location (animal_id, location),
+  KEY idx_highlight_location_active_priority (location, is_active, priority),
+  CONSTRAINT fk_highlight_animal
+    FOREIGN KEY (animal_id) REFERENCES animals (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -145,6 +167,38 @@ CREATE TABLE IF NOT EXISTS quiz_results (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
+-- TABLE: logs_activity
+-- ============================================
+CREATE TABLE IF NOT EXISTS logs_activity (
+  id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  request_id          VARCHAR(100) NULL,
+  user_id             INT UNSIGNED NULL,
+  actor_public_id     VARCHAR(100) NOT NULL,
+  actor_type          ENUM('guest', 'admin', 'system') NOT NULL DEFAULT 'guest',
+  event_type          VARCHAR(50) NOT NULL,
+  action              VARCHAR(500) NOT NULL,
+  http_method         VARCHAR(10) NULL,
+  endpoint            VARCHAR(500) NULL,
+  resource_type       VARCHAR(100) NULL,
+  resource_id         VARCHAR(100) NULL,
+  ip_address          VARCHAR(45) NULL,
+  user_agent          TEXT NULL,
+  session_id_hash     VARCHAR(128) NULL,
+  http_status         SMALLINT UNSIGNED NULL,
+  success             TINYINT(1) NULL,
+  duration_ms         INT UNSIGNED NULL,
+  payload_json        LONGTEXT NULL,
+  payload_size_bytes  INT UNSIGNED NULL,
+  error_code          VARCHAR(100) NULL,
+  error_message       TEXT NULL,
+  created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_logs_activity_created (created_at),
+  KEY idx_logs_activity_type_created (event_type, created_at),
+  KEY idx_logs_activity_actor_created (actor_type, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- SEED DATA: Kategori awal (4 zona)
 -- ============================================
 INSERT IGNORE INTO categories (name, slug, description, icon) VALUES
@@ -158,5 +212,5 @@ INSERT IGNORE INTO categories (name, slug, description, icon) VALUES
 -- Password: Admin1234 (hashed dengan bcrypt)
 -- GANTI PASSWORD INI SETELAH SETUP!
 -- ============================================
-INSERT IGNORE INTO users (name, email, password, role) VALUES
-  ('Administrator', 'admin@satwalyar.com', '$2a$12$fz89kTCEfa595rvaVoVJr.IMQCYDrVeyl5KPkVZBJlnmpzSvd4t4i', 'admin');
+INSERT IGNORE INTO users (public_id, name, email, password, is_admin) VALUES
+  ('usr_admin', 'Administrator', 'admin@satwalyar.com', '$2a$12$fz89kTCEfa595rvaVoVJr.IMQCYDrVeyl5KPkVZBJlnmpzSvd4t4i', 1);

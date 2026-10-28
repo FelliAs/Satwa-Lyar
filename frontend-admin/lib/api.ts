@@ -35,6 +35,9 @@ import type {
   LoginResponse,
   LogsResponse,
   Pagination,
+  HighlightListResponse,
+  HighlightMutationResponse,
+  HighlightPayload,
   Quiz,
   QuizQuestion,
 } from './types';
@@ -120,7 +123,7 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
   const headers: Record<string, string> = { Accept: 'application/json' };
   const token = getToken();
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    headers.Authorization = 'Bearer ' + token;
   }
 
   // Jangan set Content-Type untuk FormData (browser yang menentukan boundary).
@@ -421,6 +424,21 @@ export interface AnimalListParams {
   /** `newest` | `oldest` | `name_asc` | `name_desc`. */
   sort?: string;
 }
+
+export const highlightsApi = {
+  getAll: (signal?: AbortSignal) =>
+    apiRequest<HighlightListResponse>('/api/admin/highlights', { signal }),
+  create: (payload: HighlightPayload, signal?: AbortSignal) =>
+    apiRequest<HighlightMutationResponse>('/api/admin/highlights', {
+      method: 'POST', body: JSON.stringify(payload), signal,
+    }),
+  update: (id: number, payload: Partial<HighlightPayload>, signal?: AbortSignal) =>
+    apiRequest<HighlightMutationResponse>(`/api/admin/highlights/${id}`, {
+      method: 'PATCH', body: JSON.stringify(payload), signal,
+    }),
+  remove: (id: number, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<null>>(`/api/admin/highlights/${id}`, { method: 'DELETE', signal }),
+};
 
 export const animalsApi = {
   /**
