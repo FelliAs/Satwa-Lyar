@@ -21,7 +21,6 @@ import categoriesRoutes from './modules/categories/categories.routes';
 import quizRoutes from './modules/quiz/quiz.routes';
 import usersRoutes from './modules/users/users.routes';
 import logsRoutes from './modules/logs/logs.routes';
-import highlightsRoutes from './modules/highlights/highlights.routes';
 
 import { requestId } from './middleware/request-id.middleware';
 import { guestContext } from './middleware/guest-context.middleware';
@@ -193,7 +192,6 @@ app.use('/api/admin/categories', categoriesRoutes);
 app.use('/api/admin/quiz', quizRoutes);
 app.use('/api/admin/users', usersRoutes);
 app.use('/api/admin/logs', logsRoutes);
-app.use('/api/admin/highlights', highlightsRoutes);
 
 // ================================
 // ERROR HANDLERS

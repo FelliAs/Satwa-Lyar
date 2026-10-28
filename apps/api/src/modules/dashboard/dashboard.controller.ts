@@ -25,6 +25,7 @@ export const getDashboardStats = async (
       pool.query('SELECT COUNT(*) AS total FROM animals'),
       pool.query('SELECT COUNT(*) AS total FROM categories'),
       pool.query('SELECT COUNT(*) AS total FROM users WHERE is_admin = 0'),
+      pool.query('SELECT COUNT(*) AS total FROM users WHERE is_admin = 1'),
       pool.query('SELECT COUNT(*) AS total FROM quizzes'),
 
       // 5 fauna terbaru
@@ -38,7 +39,7 @@ export const getDashboardStats = async (
 
       // 5 identitas guest terbaru
       pool.query(
-        `SELECT id, name, email, created_at, 'user' AS role
+        `SELECT id, public_id, created_at
          FROM users WHERE is_admin = 0
          ORDER BY created_at DESC LIMIT 5`
       ),
@@ -53,7 +54,7 @@ export const getDashboardStats = async (
 
       // Jumlah identitas berdasarkan tipe
       pool.query(
-        `SELECT IF(is_admin = 1, 'admin', 'user') AS role, COUNT(*) AS total FROM users GROUP BY is_admin`
+        `SELECT is_admin, COUNT(*) AS total FROM users GROUP BY is_admin`
       ),
     ]);
 
