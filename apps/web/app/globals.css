@@ -454,6 +454,12 @@ input:focus-visible {
 .desktop-destination-wrap > button span { font-size: .7rem; }
 .header-tagline { color: #778178; font-size: .57rem; letter-spacing: .06em; }
 .mobile-menu-toggle { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border: 1px solid #d8ddcf; border-radius: 50%; background: transparent; color: #24483b; font-size: 1.15rem; }
+
+/* Tombol menu hanya untuk mobile/tablet; navigasi desktop memakai menu utama. */
+@media (min-width: 1280px) {
+  .mobile-menu-toggle { display: none; }
+  .mobile-nav-panel { display: none; }
+}
 .destinations-menu { position: fixed; top: 64px; left: 50%; display: grid; width: min(100vw - 2rem, 1360px); grid-template-columns: .9fr 1.55fr .82fr; gap: clamp(1.5rem, 4vw, 4rem); transform: translateX(-50%); border-top: 1px solid #ebe9df; background: #fffefa; padding: 2.5rem clamp(1.5rem, 5vw, 5rem); box-shadow: 0 20px 35px rgb(22 46 35 / 14%); animation: menu-enter .18s ease-out both; }
 .mega-intro > p { color: #728071; font-size: .57rem; letter-spacing: .1em; }
 .mega-intro h2 { max-width: 15rem; margin-top: 1rem; font-family: Georgia, "Times New Roman", serif; font-size: 2rem; font-weight: 400; line-height: 1.25; }
