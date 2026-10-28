@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AnimalHighlights from "@/components/AnimalHighlights";
 
 const animals = [
   {
@@ -214,7 +215,8 @@ export default function FarmHousePage() {
         </div>
       </section>
 
-      {/* ANIMAL EXPLORER */}
+      <AnimalHighlights location="farmhouse" title="Highlight Farm House" description="Kenali satwa pilihan dari Farm House dan jelajahi informasi lengkapnya." />
+      {false && (
       <section id="jelajahi" className="bg-white py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-5 lg:px-10">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -346,6 +348,7 @@ export default function FarmHousePage() {
           )}
         </div>
       </section>
+      )}
 
       {/* EDUCATION */}
       <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20 lg:px-10">
