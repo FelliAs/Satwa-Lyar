@@ -12,7 +12,7 @@ const initDatabase = async () => {
   const port = Number(process.env.DB_PORT) || 3306;
   const user = process.env.DB_USER;
   const password = process.env.DB_PASSWORD;
-  const dbName = process.env.DB_NAME || 'animal-kaiser-satwa-lyar';
+  const dbName = process.env.DB_NAME || 'satwa_lyar';
 
   console.log('🔄 Memulai inisialisasi database MariaDB Cloud...');
   console.log(`📡 Host: ${host}:${port}`);

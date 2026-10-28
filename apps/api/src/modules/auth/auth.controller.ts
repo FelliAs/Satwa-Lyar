@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../../config/database';
 import { createError } from '../../middleware/error.middleware';
+import { recordActivity } from '../../modules/logs/logs.service';
 
 // ========================
 // POST /api/auth/register
@@ -82,8 +83,7 @@ export const login = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  try {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
     // Cari user berdasarkan email dengan kolom yang ada di database (is_admin)
     const rows = await pool.query(
@@ -91,9 +91,21 @@ export const login = async (
       [email]
     );
 
-    const user = rows[0];
+    const user = (rows as any[])[0];
 
-    if (!user) {
+    const rejectLogin = async (reason: string): Promise<void> => {
+      await recordActivity(req, {
+        event_type: 'login_failed',
+        action: 'ADMIN_LOGIN_FAILED',
+        resource_type: 'auth',
+        http_status: 401,
+        success: 0,
+        payload: { reason },
+      });
+    };
+
+    if (!user || !user.password) {
+      await rejectLogin('invalid_credentials');
       return next(createError('Email atau password salah.', 401));
     }
 
@@ -113,6 +125,7 @@ export const login = async (
     }
 
     if (!isMatch) {
+      await rejectLogin('invalid_credentials');
       return next(createError('Email atau password salah.', 401));
     }
 
@@ -121,13 +134,29 @@ export const login = async (
     // Generate JWT
     const payload = { id: user.id, email: user.email, role, is_admin: user.is_admin };
     const jwtSecret = process.env.JWT_SECRET!;
-    const jwtExpiry = (process.env.JWT_EXPIRES_IN || '7d') as Parameters<typeof jwt.sign>[2] extends { expiresIn?: infer T } ? T : string;
+    const jwtExpiry = (process.env.JWT_EXPIRES_IN || '7d') as Parameters<
+      typeof jwt.sign
+    >[2] extends { expiresIn?: infer T }
+      ? T
+      : string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const token = jwt.sign(payload, jwtSecret, { expiresIn: jwtExpiry as any });
+
+    await recordActivity(req, {
+      event_type: 'login_success',
+      action: 'ADMIN_LOGIN',
+      resource_type: 'auth',
+      resource_id: user.public_id,
+      http_status: 200,
+      success: 1,
+      actor_public_id: user.public_id,
+      actor_type: 'admin',
+    });
 
     res.status(200).json({
       success: true,
       message: 'Login berhasil.',
+      request_id: req.requestId,
       data: {
         token,
         user: {
@@ -149,14 +178,24 @@ export const login = async (
 // POST /api/auth/logout
 // ========================
 export const logout = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
+    await recordActivity(req, {
+      event_type: 'logout',
+      action: req.user?.is_admin === 1 ? 'ADMIN_LOGOUT' : 'GUEST_LOGOUT',
+      resource_type: 'auth',
+      resource_id: req.user?.public_id ?? null,
+      http_status: 200,
+      success: 1,
+    });
+
     res.status(200).json({
       success: true,
       message: 'Logout berhasil.',
+      request_id: req.requestId,
     });
   } catch (error) {
     next(error);
@@ -165,6 +204,7 @@ export const logout = async (
 
 // ========================
 // GET /api/auth/me
+// Identitas aktif: admin (JWT) atau guest (cookie)
 // ========================
 export const getMe = async (
   req: Request,
@@ -172,14 +212,16 @@ export const getMe = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const identity = req.user!;
+
     const rows = await pool.query(
       'SELECT id, public_id, name, email, is_admin, created_at FROM users WHERE id = ?',
       [req.user!.id]
     );
 
-    const user = rows[0];
+    const user = (rows as any[])[0];
     if (!user) {
-      return next(createError('User tidak ditemukan.', 404));
+      return next(createError('Identitas tidak ditemukan.', 404));
     }
 
     const role = (user.is_admin === 1 || user.is_admin === true) ? 'admin' : 'user';
@@ -208,6 +250,7 @@ export const getMe = async (
 
     res.status(200).json({
       success: true,
+      request_id: req.requestId,
       data: {
         ...user,
         role,

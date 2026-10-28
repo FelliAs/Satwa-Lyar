@@ -14,12 +14,13 @@ export const getDashboardStats = async (
     const [
       totalAnimals,
       totalCategories,
-      totalUsers,
+      totalGuests,
+      totalAdmins,
       totalQuizzes,
       recentAnimals,
-      recentUsers,
+      recentGuests,
       animalsByCategory,
-      usersByRole,
+      usersByType,
     ] = await Promise.all([
       pool.query('SELECT COUNT(*) AS total FROM animals'),
       pool.query('SELECT COUNT(*) AS total FROM categories'),
@@ -35,7 +36,7 @@ export const getDashboardStats = async (
          ORDER BY a.created_at DESC LIMIT 5`
       ),
 
-      // 5 user terbaru
+      // 5 identitas guest terbaru
       pool.query(
         `SELECT id, name, email, created_at, 'user' AS role
          FROM users WHERE is_admin = 0
@@ -50,25 +51,54 @@ export const getDashboardStats = async (
          GROUP BY c.id ORDER BY total DESC`
       ),
 
-      // Jumlah user berdasarkan role
+      // Jumlah identitas berdasarkan tipe
       pool.query(
         `SELECT IF(is_admin = 1, 'admin', 'user') AS role, COUNT(*) AS total FROM users GROUP BY is_admin`
       ),
     ]);
 
+    // Statistik log 24 jam terakhir (opsional, tabel log mungkin belum ada)
+    let logStats: Record<string, number> = {
+      total_24h: 0,
+      errors_24h: 0,
+      quiz_payloads_24h: 0,
+    };
+
+    try {
+      const logRows = await pool.query(
+        `SELECT COUNT(*) AS total,
+                SUM(CASE WHEN event_type = 'application_error' THEN 1 ELSE 0 END) AS errors,
+                SUM(CASE WHEN event_type = 'quiz_payload' THEN 1 ELSE 0 END) AS quiz_payloads
+         FROM logs_activity
+         WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)`
+      );
+
+      logStats = {
+        total_24h: Number(logRows[0]?.total || 0),
+        errors_24h: Number(logRows[0]?.errors || 0),
+        quiz_payloads_24h: Number(logRows[0]?.quiz_payloads || 0),
+      };
+    } catch {
+      // tabel logs_activity belum tersedia - abaikan
+    }
+
     res.status(200).json({
       success: true,
+      request_id: req.requestId,
       data: {
         stats: {
           total_animals: Number(totalAnimals[0].total),
           total_categories: Number(totalCategories[0].total),
-          total_users: Number(totalUsers[0].total),
           total_quizzes: Number(totalQuizzes[0].total),
+          total_guests: Number(totalGuests[0].total),
+          total_admins: Number(totalAdmins[0].total),
+          total_users: Number(totalGuests[0].total) + Number(totalAdmins[0].total),
+          ...logStats,
         },
         recent_animals: recentAnimals,
-        recent_users: recentUsers,
+        recent_guests: recentGuests,
         animals_by_category: animalsByCategory,
-        users_by_role: usersByRole,
+        users_by_type: usersByType,
       },
     });
   } catch (error) {

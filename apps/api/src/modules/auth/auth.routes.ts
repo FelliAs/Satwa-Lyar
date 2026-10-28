@@ -1,21 +1,18 @@
 import { Router } from 'express';
-import { register, login, logout, getMe } from './auth.controller';
-import { registerValidation, loginValidation } from './auth.validation';
+import { login, logout, getMe } from './auth.controller';
+import { loginValidation } from './auth.validation';
 import { validate } from '../../middleware/validation.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
 
 const router = Router();
 
-// POST /api/auth/register
-router.post('/register', registerValidation, validate, register);
-
-// POST /api/auth/login
+// POST /api/auth/login (khusus admin)
 router.post('/login', loginValidation, validate, login);
 
 // POST /api/auth/logout
-router.post('/logout', logout);
+router.post('/logout', authenticate, logout);
 
-// GET /api/auth/me (perlu token)
+// GET /api/auth/me (identitas aktif: admin atau guest)
 router.get('/me', authenticate, getMe);
 
 export default router;

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../config/database';
 import { R2_PUBLIC_URL } from '../../config/r2';
-import { getCache, setCache } from '../../config/redis';
+import { getCache, setCache, getCacheVersion } from '../../config/redis';
 import { createError } from '../../middleware/error.middleware';
 
 // ============================================
@@ -26,17 +26,19 @@ export const getPublicAnimals = async (
 
     const userId = req.user?.id;
 
-    // Cache key jika tamu tanpa filter pencarian kompleks
-    const cacheKey = !userId && !search && !conservationStatus && !categoryId && !categorySlug && page === 1
-      ? 'public_animals_page_1'
-      : null;
+    // Cache key hanya untuk request default (tanpa filter pencarian).
+    // limit & sort ikut masuk key agar hasil cache tidak pernah berbeda
+    // dengan hasil query database. Versi cache memastikan data basi
+    // (setelah ada perubahan dari admin) tidak pernah dipakai.
+    const cacheVersion = await getCacheVersion();
+    const cacheKey =
+      !search && !conservationStatus && !categoryId && !categorySlug && page === 1
+        ? `v${cacheVersion}:public_animals_p1_limit_${limit}_sort_${sort}`
+        : null;
 
+    let cachedPayload: { data: any[]; pagination: any } | null = null;
     if (cacheKey) {
-      const cached = await getCache(cacheKey);
-      if (cached) {
-        res.status(200).json(cached);
-        return;
-      }
+      cachedPayload = await getCache<{ data: any[]; pagination: any }>(cacheKey);
     }
 
     let whereClause = 'WHERE 1=1';
@@ -76,82 +78,93 @@ export const getPublicAnimals = async (
       orderBy = 'a.name DESC';
     }
 
-    // Hitung total data
-    const countSql = `
-      SELECT COUNT(*) AS total
-      FROM animals a
-      LEFT JOIN categories c ON c.id = a.category_id
-      ${whereClause}
-    `;
-    const countResult = await pool.query(countSql, params);
-    const total = Number(countResult[0]?.total || 0);
+    let formattedData: any[] = [];
+    let pagination = {
+      total: 0,
+      page,
+      limit,
+      total_pages: 1,
+    };
 
-    // Ambil data satwa
-    let selectFields = `
-      a.id, a.name, a.scientific_name, a.description,
-      a.conservation_status, a.image_key, a.created_at,
-      c.id AS category_id, c.name AS category_name, c.slug AS category_slug, c.icon AS category_icon
-    `;
+    if (cachedPayload) {
+      formattedData = cachedPayload.data || [];
+      pagination = cachedPayload.pagination || pagination;
+    } else {
+      // Hitung total data
+      const countSql = `
+        SELECT COUNT(*) AS total
+        FROM animals a
+        LEFT JOIN categories c ON c.id = a.category_id
+        ${whereClause}
+      `;
+      const countResult = await pool.query(countSql, params);
+      const total = Number(countResult[0]?.total || 0);
 
-    // Jika user login, cek status favorit
-    const queryParams = [...params];
-    if (userId) {
-      selectFields += `, IF(f.id IS NOT NULL, 1, 0) AS is_favorite`;
-    }
+      const dataSql = `
+        SELECT a.id, a.name, a.scientific_name, a.description,
+               a.conservation_status, a.image_key, a.created_at,
+               c.id AS category_id, c.name AS category_name, c.slug AS category_slug, c.icon AS category_icon
+        FROM animals a
+        LEFT JOIN categories c ON c.id = a.category_id
+        ${whereClause}
+        ORDER BY ${orderBy}
+        LIMIT ? OFFSET ?
+      `;
 
-    const dataSql = `
-      SELECT ${selectFields}
-      FROM animals a
-      LEFT JOIN categories c ON c.id = a.category_id
-      ${userId ? 'LEFT JOIN favorites f ON f.animal_id = a.id AND f.user_id = ?' : ''}
-      ${whereClause}
-      ORDER BY ${orderBy}
-      LIMIT ? OFFSET ?
-    `;
+      const rows = await pool.query(dataSql, [...params, limit, offset]);
 
-    const finalParams = userId
-      ? [userId, ...queryParams, limit, offset]
-      : [...queryParams, limit, offset];
+      formattedData = (rows as any[]).map((animal) => ({
+        id: animal.id,
+        name: animal.name,
+        scientific_name: animal.scientific_name,
+        description: animal.description,
+        conservation_status: animal.conservation_status,
+        category: {
+          id: animal.category_id,
+          name: animal.category_name,
+          slug: animal.category_slug,
+          icon: animal.category_icon,
+        },
+        image_key: animal.image_key,
+        image_url: animal.image_key ? `${R2_PUBLIC_URL}/${animal.image_key}` : null,
+        is_favorite: false,
+        created_at: animal.created_at,
+      }));
 
-    const rows = await pool.query(dataSql, finalParams);
-
-    const formattedData = (rows as any[]).map((animal) => ({
-      id: animal.id,
-      name: animal.name,
-      scientific_name: animal.scientific_name,
-      description: animal.description,
-      conservation_status: animal.conservation_status,
-      category: {
-        id: animal.category_id,
-        name: animal.category_name,
-        slug: animal.category_slug,
-        icon: animal.category_icon,
-      },
-      image_key: animal.image_key,
-      image_url: animal.image_key
-        ? `${R2_PUBLIC_URL}/${animal.image_key}`
-        : null,
-      is_favorite: userId ? Boolean(animal.is_favorite) : false,
-      created_at: animal.created_at,
-    }));
-
-    const responsePayload = {
-      success: true,
-      data: formattedData,
-      pagination: {
+      pagination = {
         total,
         page,
         limit,
         total_pages: Math.ceil(total / limit) || 1,
-      },
-    };
+      };
 
-    // Simpan ke cache jika request default
-    if (cacheKey) {
-      await setCache(cacheKey, responsePayload, 180); // cache 3 menit
+      // Simpan ke cache (tanpa status favorit, karena itu per identitas)
+      if (cacheKey) {
+        await setCache(cacheKey, { data: formattedData, pagination }, 180); // cache 3 menit
+      }
     }
 
-    res.status(200).json(responsePayload);
+    // Status favorit diambil terpisah agar hasil cache tetap bisa dipakai
+    if (userId && formattedData.length > 0) {
+      const animalIds = formattedData.map((animal) => animal.id);
+      const favRows = await pool.query(
+        `SELECT animal_id FROM favorites
+         WHERE user_id = ? AND animal_id IN (${animalIds.map(() => '?').join(', ')})`,
+        [userId, ...animalIds]
+      );
+
+      const favoriteIds = new Set((favRows as any[]).map((row) => Number(row.animal_id)));
+      formattedData = formattedData.map((animal) => ({
+        ...animal,
+        is_favorite: favoriteIds.has(Number(animal.id)),
+      }));
+    }
+
+    res.status(200).json({
+      success: true,
+      data: formattedData,
+      pagination,
+    });
   } catch (error) {
     next(error);
   }

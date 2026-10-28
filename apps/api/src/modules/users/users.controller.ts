@@ -3,9 +3,12 @@ import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import pool from '../../config/database';
 import { createError } from '../../middleware/error.middleware';
+import { recordAdminAction } from '../../modules/logs/logs.service';
+import { allocateAdminPublicId } from './admin-sequence';
 
 // ========================
 // GET /api/admin/users
+// scope=admin (default) | guest | all
 // ========================
 export const getAllUsers = async (
   req: Request,
@@ -13,18 +16,21 @@ export const getAllUsers = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
     const offset = (page - 1) * limit;
-    const search = req.query.search as string;
-    const role = req.query.role as string;
+    const search = (req.query.search as string)?.trim();
+    const scope = (req.query.scope as string) || 'admin';
 
     let whereClause = 'WHERE 1=1';
     const params: (string | number)[] = [];
 
-    if (search) {
-      whereClause += ' AND (name LIKE ? OR email LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`);
+    if (scope === 'admin') {
+      whereClause += ' AND is_admin = 1';
+    } else if (scope === 'guest') {
+      whereClause += ' AND is_admin = 0';
+    } else if (scope !== 'all') {
+      return next(createError('Scope harus admin, guest, atau all.', 400));
     }
 
     if (role && ['admin', 'user'].includes(role)) {
@@ -42,12 +48,12 @@ export const getAllUsers = async (
               IF(is_admin = 1, 'admin', 'user') AS role,
               is_admin, created_at, updated_at
        FROM users ${whereClause}
-       ORDER BY created_at DESC
+       ORDER BY is_admin DESC, created_at DESC
        LIMIT ? OFFSET ?`,
       [...params, limit, offset]
     );
 
-    const total = Number(countResult[0].total);
+    const total = Number(countResult[0]?.total || 0);
 
     res.status(200).json({
       success: true,
@@ -56,7 +62,7 @@ export const getAllUsers = async (
         total,
         page,
         limit,
-        total_pages: Math.ceil(total / limit),
+        total_pages: Math.ceil(total / limit) || 1,
       },
     });
   } catch (error) {
@@ -83,10 +89,9 @@ export const getUserById = async (
     );
 
     if (!rows[0]) {
-      return next(createError('User tidak ditemukan.', 404));
+      return next(createError('Identitas tidak ditemukan.', 404));
     }
 
-    // Tambahkan statistik user
     const favCount = await pool.query(
       'SELECT COUNT(*) AS total FROM favorites WHERE user_id = ?',
       [id]
@@ -100,8 +105,8 @@ export const getUserById = async (
       success: true,
       data: {
         ...rows[0],
-        total_favorites: Number(favCount[0].total),
-        total_quiz_attempts: Number(quizCount[0].total),
+        total_favorites: Number(favCount[0]?.total || 0),
+        total_quiz_attempts: Number(quizCount[0]?.total || 0),
       },
     });
   } catch (error) {
@@ -110,7 +115,8 @@ export const getUserById = async (
 };
 
 // ========================
-// POST /api/admin/users (Admin membuat user baru)
+// POST /api/admin/users
+// Membuat akun admin baru dengan public_id berurutan (adm_XXXX)
 // ========================
 export const createUser = async (
   req: Request,
@@ -118,9 +124,8 @@ export const createUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, email, password, role = 'user' } = req.body;
+    const { name, email, password } = req.body;
 
-    // Cek email sudah dipakai
     const existing = await pool.query(
       'SELECT id FROM users WHERE email = ?',
       [email]
@@ -129,7 +134,6 @@ export const createUser = async (
       return next(createError('Email sudah terdaftar.', 409));
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const result = await pool.query(
@@ -146,9 +150,17 @@ export const createUser = async (
       [result.insertId]
     );
 
+    await recordAdminAction(req, {
+      action: 'CREATE_ADMIN',
+      resource_type: 'user',
+      resource_id: publicId,
+      payload: { name, email },
+      after: { public_id: publicId, name, email, is_admin: 1 },
+    });
+
     res.status(201).json({
       success: true,
-      message: 'User berhasil dibuat.',
+      message: `Administrator berhasil dibuat dengan ID ${publicId}.`,
       data: newUser[0],
     });
   } catch (error) {
@@ -166,21 +178,34 @@ export const updateUser = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, email, role, password } = req.body;
+    const { name, email, password } = req.body;
 
-    const existing = await pool.query('SELECT id FROM users WHERE id = ?', [id]);
-    if (!existing[0]) {
-      return next(createError('User tidak ditemukan.', 404));
+    const existing = await pool.query(
+      'SELECT id, public_id, name, email, is_admin FROM users WHERE id = ?',
+      [id]
+    );
+
+    const current = (existing as any[])[0];
+    if (!current) {
+      return next(createError('Identitas tidak ditemukan.', 404));
     }
 
-    // Cek email tidak dipakai user lain
-    if (email) {
+    if (Number(current.is_admin) !== 1) {
+      return next(
+        createError(
+          'Identitas guest tidak dapat diedit melalui endpoint ini.',
+          400
+        )
+      );
+    }
+
+    if (email && email !== current.email) {
       const emailCheck = await pool.query(
         'SELECT id FROM users WHERE email = ? AND id != ?',
         [email, id]
       );
       if (emailCheck[0]) {
-        return next(createError('Email sudah digunakan user lain.', 409));
+        return next(createError('Email sudah digunakan identitas lain.', 409));
       }
     }
 
@@ -214,9 +239,22 @@ export const updateUser = async (
       [id]
     );
 
+    await recordAdminAction(req, {
+      action: 'UPDATE_ADMIN',
+      resource_type: 'user',
+      resource_id: current.public_id,
+      payload: {
+        ...(name ? { name } : {}),
+        ...(email ? { email } : {}),
+        ...(password ? { password_changed: true } : {}),
+      },
+      before: { name: current.name, email: current.email },
+      after: { name: updated[0]?.name, email: updated[0]?.email },
+    });
+
     res.status(200).json({
       success: true,
-      message: 'User berhasil diperbarui.',
+      message: 'Administrator berhasil diperbarui.',
       data: updated[0],
     });
   } catch (error) {
@@ -237,19 +275,46 @@ export const deleteUser = async (
 
     // Admin tidak bisa menghapus dirinya sendiri
     if (Number(id) === req.user!.id) {
-      return next(createError('Anda tidak dapat menghapus akun Anda sendiri.', 400));
+      return next(
+        createError('Anda tidak dapat menghapus akun Anda sendiri.', 400)
+      );
     }
 
-    const existing = await pool.query('SELECT id FROM users WHERE id = ?', [id]);
-    if (!existing[0]) {
-      return next(createError('User tidak ditemukan.', 404));
+    const existing = await pool.query(
+      'SELECT id, public_id, name, email, is_admin FROM users WHERE id = ?',
+      [id]
+    );
+
+    const current = (existing as any[])[0];
+    if (!current) {
+      return next(createError('Identitas tidak ditemukan.', 404));
+    }
+
+    if (Number(current.is_admin) !== 1) {
+      return next(
+        createError(
+          'Identitas guest tidak dapat dihapus melalui endpoint ini.',
+          400
+        )
+      );
     }
 
     await pool.query('DELETE FROM users WHERE id = ?', [id]);
 
+    await recordAdminAction(req, {
+      action: 'DELETE_ADMIN',
+      resource_type: 'user',
+      resource_id: current.public_id,
+      before: {
+        public_id: current.public_id,
+        name: current.name,
+        email: current.email,
+      },
+    });
+
     res.status(200).json({
       success: true,
-      message: 'User berhasil dihapus.',
+      message: 'Administrator berhasil dihapus.',
     });
   } catch (error) {
     next(error);

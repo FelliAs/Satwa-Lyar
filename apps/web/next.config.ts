@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   experimental: {
     agentFeedback: true,
   },
@@ -14,6 +13,16 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://satwa-lyar-api.vercel.app";
+
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${backendUrl.replace(/\/+$/, "")}/api/:path*`,
+      },
+    ];
   },
 };
 

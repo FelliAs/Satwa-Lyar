@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../config/database';
 import { createError } from '../../middleware/error.middleware';
+import { recordAdminAction } from '../../modules/logs/logs.service';
 
 // ========================
 // GET /api/admin/quiz
@@ -123,6 +124,24 @@ export const createQuiz = async (
       [quizId]
     );
 
+    await recordAdminAction(req, {
+      action: 'CREATE_QUIZ',
+      resource_type: 'quiz',
+      resource_id: quizId,
+      payload: {
+        title,
+        category_id: category_id || null,
+        is_active,
+        question_count: Array.isArray(questions) ? questions.length : 0,
+      },
+      after: {
+        id: Number(quizId),
+        title,
+        category_id: category_id || null,
+        is_active,
+      },
+    });
+
     res.status(201).json({
       success: true,
       message: 'Quiz berhasil dibuat.',
@@ -145,7 +164,10 @@ export const updateQuiz = async (
     const { id } = req.params;
     const { title, description, category_id, is_active } = req.body;
 
-    const existing = await pool.query('SELECT id FROM quizzes WHERE id = ?', [id]);
+    const existing = await pool.query(
+      'SELECT id, title, category_id, is_active FROM quizzes WHERE id = ?',
+      [id]
+    );
     if (!existing[0]) {
       return next(createError('Quiz tidak ditemukan.', 404));
     }
@@ -166,6 +188,28 @@ export const updateQuiz = async (
        LEFT JOIN categories c ON c.id = q.category_id WHERE q.id = ?`,
       [id]
     );
+
+    await recordAdminAction(req, {
+      action: 'UPDATE_QUIZ',
+      resource_type: 'quiz',
+      resource_id: id,
+      payload: {
+        ...(title !== undefined ? { title } : {}),
+        ...(description !== undefined ? { description } : {}),
+        ...(category_id !== undefined ? { category_id } : {}),
+        ...(is_active !== undefined ? { is_active } : {}),
+      },
+      before: {
+        title: existing[0].title,
+        category_id: existing[0].category_id,
+        is_active: existing[0].is_active,
+      },
+      after: {
+        title: updated[0]?.title,
+        category_id: updated[0]?.category_id,
+        is_active: updated[0]?.is_active,
+      },
+    });
 
     res.status(200).json({
       success: true,
@@ -195,6 +239,17 @@ export const deleteQuiz = async (
 
     // quiz_questions akan terhapus otomatis via ON DELETE CASCADE di database
     await pool.query('DELETE FROM quizzes WHERE id = ?', [id]);
+
+    await recordAdminAction(req, {
+      action: 'DELETE_QUIZ',
+      resource_type: 'quiz',
+      resource_id: id,
+      before: {
+        title: existing[0].title,
+        category_id: existing[0].category_id,
+        is_active: existing[0].is_active,
+      },
+    });
 
     res.status(200).json({
       success: true,
@@ -235,6 +290,17 @@ export const addQuestion = async (
       [result.insertId]
     );
 
+    await recordAdminAction(req, {
+      action: 'ADD_QUESTION',
+      resource_type: 'question',
+      resource_id: result.insertId,
+      payload: {
+        quiz_id: Number(id),
+        question_text,
+        order_num: order_num || 1,
+      },
+    });
+
     res.status(201).json({
       success: true,
       message: 'Pertanyaan berhasil ditambahkan.',
@@ -259,7 +325,7 @@ export const updateQuestion = async (
       req.body;
 
     const qCheck = await pool.query(
-      'SELECT id FROM quiz_questions WHERE id = ? AND quiz_id = ?',
+      `SELECT id, question_text, order_num FROM quiz_questions WHERE id = ? AND quiz_id = ?`,
       [qid, id]
     );
     if (!qCheck[0]) {
@@ -284,6 +350,25 @@ export const updateQuestion = async (
       [qid]
     );
 
+    await recordAdminAction(req, {
+      action: 'UPDATE_QUESTION',
+      resource_type: 'question',
+      resource_id: qid,
+      payload: {
+        quiz_id: Number(id),
+        ...(question_text !== undefined ? { question_text } : {}),
+        ...(order_num !== undefined ? { order_num } : {}),
+      },
+      before: {
+        question_text: qCheck[0].question_text,
+        order_num: qCheck[0].order_num,
+      },
+      after: {
+        question_text: updated[0]?.question_text,
+        order_num: updated[0]?.order_num,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Pertanyaan berhasil diperbarui.',
@@ -306,7 +391,7 @@ export const deleteQuestion = async (
     const { id, qid } = req.params;
 
     const qCheck = await pool.query(
-      'SELECT id FROM quiz_questions WHERE id = ? AND quiz_id = ?',
+      `SELECT id, question_text, order_num FROM quiz_questions WHERE id = ? AND quiz_id = ?`,
       [qid, id]
     );
     if (!qCheck[0]) {
@@ -314,6 +399,17 @@ export const deleteQuestion = async (
     }
 
     await pool.query('DELETE FROM quiz_questions WHERE id = ?', [qid]);
+
+    await recordAdminAction(req, {
+      action: 'DELETE_QUESTION',
+      resource_type: 'question',
+      resource_id: qid,
+      payload: { quiz_id: Number(id) },
+      before: {
+        question_text: qCheck[0].question_text,
+        order_num: qCheck[0].order_num,
+      },
+    });
 
     res.status(200).json({
       success: true,

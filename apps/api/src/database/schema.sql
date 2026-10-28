@@ -1,14 +1,14 @@
 -- ============================================
--- SATWA LYAR - Database Schema
+-- SATWA LYAR - Database Schema (Baseline)
 -- MariaDB Cloud
+-- Identitas: users menyimpan Guest (gst_*) dan Admin (adm_*)
 -- ============================================
-
--- Pastikan menggunakan database yang benar
--- CREATE DATABASE IF NOT EXISTS satwa_lyar CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
--- USE satwa_lyar;
 
 -- ============================================
 -- TABLE: users
+-- Menyimpan identitas internal Guest dan Admin.
+-- Guest: name/email/password NULL, is_admin = 0
+-- Admin: name/email/password wajib, is_admin = 1
 -- ============================================
 CREATE TABLE IF NOT EXISTS users (
   id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
