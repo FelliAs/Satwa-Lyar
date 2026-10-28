@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
 import pool from '../../config/database';
 import { createError } from '../../middleware/error.middleware';
 import { recordAdminAction } from '../../modules/logs/logs.service';
@@ -32,9 +33,9 @@ export const getAllUsers = async (
       return next(createError('Scope harus admin, guest, atau all.', 400));
     }
 
-    if (search) {
-      whereClause += ' AND (name LIKE ? OR email LIKE ? OR public_id LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    if (role && ['admin', 'user'].includes(role)) {
+      whereClause += ' AND is_admin = ?';
+      params.push(role === 'admin' ? 1 : 0);
     }
 
     const countResult = await pool.query(
@@ -43,7 +44,9 @@ export const getAllUsers = async (
     );
 
     const rows = await pool.query(
-      `SELECT id, public_id, name, email, is_admin, created_at, updated_at
+      `SELECT id, public_id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at, updated_at
        FROM users ${whereClause}
        ORDER BY is_admin DESC, created_at DESC
        LIMIT ? OFFSET ?`,
@@ -78,7 +81,9 @@ export const getUserById = async (
   try {
     const { id } = req.params;
     const rows = await pool.query(
-      `SELECT id, public_id, name, email, is_admin, created_at, updated_at
+      `SELECT id, public_id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at, updated_at
        FROM users WHERE id = ?`,
       [id]
     );
@@ -131,33 +136,18 @@ export const createUser = async (
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const conn = await pool.getConnection();
-    let newUserId: number;
-    let publicId: string;
-
-    try {
-      await conn.beginTransaction();
-
-      publicId = await allocateAdminPublicId(conn);
-
-      const result = await conn.query(
-        `INSERT INTO users (public_id, name, email, password, is_admin)
-         VALUES (?, ?, ?, ?, 1)`,
-        [publicId, name, email, hashedPassword]
-      );
-      newUserId = Number(result.insertId);
-
-      await conn.commit();
-    } catch (txError) {
-      await conn.rollback();
-      throw txError;
-    } finally {
-      conn.release();
-    }
+    const result = await pool.query(
+      `INSERT INTO users (public_id, name, email, password, is_admin)
+       VALUES (?, ?, ?, ?, ?)`,
+      [`usr_${randomUUID()}`, name, email, hashedPassword, role === 'admin' ? 1 : 0]
+    );
 
     const newUser = await pool.query(
-      'SELECT id, public_id, name, email, is_admin, created_at FROM users WHERE id = ?',
-      [newUserId]
+      `SELECT id, public_id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at
+       FROM users WHERE id = ?`,
+      [result.insertId]
     );
 
     await recordAdminAction(req, {
@@ -228,14 +218,24 @@ export const updateUser = async (
       `UPDATE users SET
          name = COALESCE(?, name),
          email = COALESCE(?, email),
+         is_admin = COALESCE(?, is_admin),
          password = COALESCE(?, password),
          updated_at = NOW()
        WHERE id = ?`,
-      [name, email, hashedPassword, id]
+      [
+        name,
+        email,
+        role === undefined ? null : role === 'admin' ? 1 : 0,
+        hashedPassword,
+        id,
+      ]
     );
 
     const updated = await pool.query(
-      'SELECT id, public_id, name, email, is_admin, created_at, updated_at FROM users WHERE id = ?',
+      `SELECT id, public_id, name, email,
+              IF(is_admin = 1, 'admin', 'user') AS role,
+              is_admin, created_at, updated_at
+       FROM users WHERE id = ?`,
       [id]
     );
 

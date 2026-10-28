@@ -79,7 +79,8 @@ const runValidation = async () => {
 
     // Periksa Admin Seed
     const [adminUser] = await conn.query(
-      'SELECT id, public_id, name, email, is_admin FROM users WHERE email = ?',
+      `SELECT id, name, email, IF(is_admin = 1, 'admin', 'user') AS role
+       FROM users WHERE email = ?`,
       ['admin@satwalyar.com']
     );
     test(
