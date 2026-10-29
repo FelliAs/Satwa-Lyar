@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import PageViewTracker from "@/components/PageViewTracker";
 import { AuthProvider } from "@/context/AuthContext";
@@ -19,8 +20,12 @@ export default function RootLayout({
     <html lang="id">
       <body>
         <AuthProvider>
-          <PageViewTracker />
-          <SiteChrome>{children}</SiteChrome>
+          <Suspense fallback={null}>
+            <PageViewTracker />
+          </Suspense>
+          <Suspense fallback={null}>
+            <SiteChrome>{children}</SiteChrome>
+          </Suspense>
         </AuthProvider>
       </body>
     </html>
