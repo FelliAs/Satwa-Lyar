@@ -1,6 +1,7 @@
 'use client';
 
 import { CalendarDays, ImageOff, Pencil, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import type { Animal } from '@/lib/types';
 import ConservationBadge from './ConservationBadge';
 import { formatDate, truncate } from '@/lib/utils';
@@ -79,9 +80,12 @@ export default function AnimalTable({
                     </span>
                   )}
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[var(--color-text)]">
+                    <Link
+                      href={`/satwa/${animal.id}`}
+                      className="block truncate text-sm font-semibold text-[var(--color-text)] transition hover:text-[var(--color-primary)]"
+                    >
                       {animal.name}
-                    </p>
+                    </Link>
                     <p className="truncate text-xs italic text-[var(--color-text-muted)]">
                       {animal.scientific_name || 'Nama ilmiah belum diisi'}
                     </p>

@@ -389,6 +389,15 @@ export const animalsApi = {
     };
   },
 
+  /** Detail satwa publik. Tidak membutuhkan sesi admin. */
+  getPublicById: async (id: string, signal?: AbortSignal) => {
+    const response = await apiRequest<{ success: boolean; data: Record<string, unknown> }>(
+      `/api/animals/${encodeURIComponent(id)}`,
+      { signal, skipAuthRedirect: true }
+    );
+    return { ...response, data: normalizeAnimal(response.data) };
+  },
+
   /** Detail satwa (field lengkap: habitat, makanan, ciri fisik). */
   getById: async (id: number, signal?: AbortSignal) => {
     const response = await apiRequest<{ success: boolean; data: Record<string, unknown> }>(
