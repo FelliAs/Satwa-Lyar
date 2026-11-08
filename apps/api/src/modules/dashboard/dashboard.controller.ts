@@ -67,7 +67,7 @@ export const getDashboardStats = async (
 
     try {
       const logRows = await pool.query(
-        `SELECT COUNT(*) AS total,
+        `SELECT COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN actor_public_id END) AS total,
                 SUM(CASE WHEN event_type = 'application_error' THEN 1 ELSE 0 END) AS errors,
                 SUM(CASE WHEN event_type = 'quiz_payload' THEN 1 ELSE 0 END) AS quiz_payloads
          FROM logs_activity

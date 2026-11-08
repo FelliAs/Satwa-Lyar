@@ -12,6 +12,14 @@ export const trackPageView = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const analyticsEnabled =
+      process.env.ANALYTICS_ENABLED === 'true' ||
+      (process.env.ANALYTICS_ENABLED === undefined && process.env.NODE_ENV === 'production');
+
+    if (!analyticsEnabled) {
+      res.status(204).end();
+      return;
+    }
     const path = typeof req.body?.path === 'string' ? req.body.path.slice(0, 500) : null;
     const referrer =
       typeof req.body?.referrer === 'string' ? req.body.referrer.slice(0, 500) : null;
