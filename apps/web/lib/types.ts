@@ -112,6 +112,110 @@ export interface Quiz {
 }
 
 /* =========================
+ * KUIS PUBLIK / PENGGUNA
+ * ========================= */
+
+/** Soal kuis untuk pengunjung — kunci jawaban tidak pernah dikirim backend. */
+export interface PublicQuizQuestion {
+  id: number;
+  quiz_id?: number;
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  order_num?: number;
+}
+
+/** Kuis aktif beserta soalnya (hasil `GET /api/quiz/:id`). */
+export interface PublicQuiz {
+  id: number;
+  title: string;
+  description?: string | null;
+  category_id?: number | null;
+  category_name?: string | null;
+  category_slug?: string | null;
+  category_icon?: string | null;
+  total_questions?: number;
+  created_at?: string;
+  questions?: PublicQuizQuestion[];
+}
+
+/** Ulasan satu soal setelah kuis disubmit. */
+export interface QuizReviewItem {
+  question_id: number;
+  question_text: string;
+  options: { A: string; B: string; C: string; D: string };
+  user_answer: string | null;
+  correct_answer: string;
+  is_correct: boolean;
+}
+
+/** Hasil kuis yang dikembalikan `POST /api/quiz/:id/submit`. */
+export interface QuizSubmitResult {
+  result_id: number;
+  quiz_id: number;
+  quiz_title: string;
+  score: number;
+  total_questions: number;
+  correct_answers: number;
+  wrong_answers: number;
+  passed: boolean;
+  review: QuizReviewItem[];
+}
+
+/** Satu baris riwayat pengerjaan kuis (`GET /api/quiz/history`). */
+export interface QuizHistoryEntry {
+  id: number;
+  quiz_id: number;
+  score: number;
+  total_questions: number;
+  correct_answers: number;
+  completed_at: string;
+  quiz_title?: string;
+  category_name?: string | null;
+  category_slug?: string | null;
+  category_icon?: string | null;
+}
+
+/* =========================
+ * FAVORIT & PROFIL
+ * ========================= */
+
+/** Satu entri favorit pengguna (`GET /api/favorites`). */
+export interface FavoriteEntry {
+  favorite_id: number;
+  favorited_at: string;
+  is_favorite: boolean;
+  animal: {
+    id: number;
+    name: string;
+    scientific_name?: string | null;
+    description?: string | null;
+    conservation_status?: ConservationStatus | null;
+    image_key?: string | null;
+    image_url?: string | null;
+    category: {
+      id: number;
+      name: string;
+      slug: string;
+      icon?: string | null;
+    };
+  };
+}
+
+/** Profil identitas aktif beserta statistik aktivitasnya. */
+export interface UserProfile extends AdminUser {
+  updated_at?: string;
+  stats: {
+    total_favorites: number;
+    total_quiz_attempts: number;
+    average_quiz_score: number;
+    highest_quiz_score: number;
+  };
+}
+
+/* =========================
  * SATWA
  * ========================= */
 
@@ -171,8 +275,41 @@ export interface AnimalHighlight {
   };
 }
 
+/** Highlight pada panel admin (bentuk berbeda dari bentuk publik). */
+export interface AdminHighlight {
+  id: number;
+  animal_id: number;
+  animal: {
+    id: number;
+    name: string;
+    scientific_name?: string | null;
+    image_url?: string | null;
+    category: {
+      id: number;
+      name: string;
+      slug: string;
+    };
+  };
+  location: string;
+  is_active: boolean;
+  priority: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface AnimalListResponse extends ApiSuccess<Animal[]> {
   pagination: Pagination;
+}
+
+/** Satwa pada daftar publik; `is_favorite` terisi bila request membawa identitas. */
+export interface PublicAnimal extends Animal {
+  is_favorite?: boolean;
+}
+
+/** Sub-kategori/label turunan pada halaman zona (mis. "Ikan", "Mamalia"). */
+export interface ZoneTypeFilter {
+  label: string;
+  value: string;
 }
 
 export type AnimalDetailResponse = ApiSuccess<Animal>;

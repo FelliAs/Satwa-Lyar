@@ -1,51 +1,7 @@
-"use client";
+﻿"use client";
 
 import AnimalHighlights from "@/components/AnimalHighlights";
-
-import { useState } from "react";
-
-const airtawarAnimals = [
-  {
-    name: "Ikan Arwana",
-    scientific: "Scleropages formosus",
-    type: "Ikan",
-    image:
-      "https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=900&q=85",
-    description:
-      "Ikan air tawar tropis yang dikenal dengan sisiknya yang berkilau dan gerakannya yang anggun.",
-    habitat: "Sungai dan rawa",
-  },
-  {
-    name: "Arapaima",
-    scientific: "Arapaima gigas",
-    type: "Ikan",
-    image:
-      "https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=900&q=85",
-    description:
-      "Ikan air tawar berukuran besar yang berasal dari kawasan sungai Amazon di Amerika Selatan.",
-    habitat: "Sungai Amazon",
-  },
-  {
-    name: "Berang-berang",
-    scientific: "Lutrinae",
-    type: "Mamalia",
-    image:
-      "https://images.unsplash.com/photo-1459262838948-3e2de6c1ec80?w=900&q=85",
-    description:
-      "Mamalia semiakuatik yang pandai berenang dan berperan dalam keseimbangan ekosistem.",
-    habitat: "Sungai dan danau",
-  },
-  {
-    name: "Ikan Koi",
-    scientific: "Cyprinus rubrofuscus",
-    type: "Ikan",
-    image:
-      "https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=900&q=85",
-    description:
-      "Ikan hias air tawar yang memiliki beragam pola dan warna pada tubuhnya.",
-    habitat: "Kolam dan perairan tenang",
-  },
-];
+import ZoneAnimalGrid from "@/components/ZoneAnimalGrid";
 
 const facts = [
   {
@@ -69,20 +25,6 @@ const facts = [
 ];
 
 export default function airtawarPage() {
-  const [search, setSearch] = useState("");
-  const [activeType, setActiveType] = useState("Semua");
-
-  const filteredAnimals = airtawarAnimals.filter((animal) => {
-    const matchesSearch = `${animal.name} ${animal.scientific} ${animal.habitat}`
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
-    const matchesType =
-      activeType === "Semua" || animal.type === activeType;
-
-    return matchesSearch && matchesType;
-  });
-
   return (
     <main className="font-serif-headings min-h-screen bg-[#faf9f4] text-[#27352b]">
       {/* HERO */}
@@ -183,134 +125,18 @@ export default function airtawarPage() {
       </section>
 
       <AnimalHighlights location="air-tawar" title="Highlight Satwa" description="Kenali satwa pilihan dari zona ini dan jelajahi informasi lengkapnya." />
-      {false && (
-      <section id="jelajahi" className="bg-white py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-5 lg:px-10">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#64815c]">
-                Ensiklopedia Satwa
-              </p>
-
-              <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-                Penghuni Air Tawar
-              </h2>
-
-              <p className="mt-3 max-w-lg leading-7 text-[#73796e]">
-                Kenali satwa, ciri khas, dan lingkungan tempat mereka hidup.
-              </p>
-            </div>
-
-            <div className="w-full md:max-w-sm">
-              <label
-                htmlFor="search-animal"
-                className="mb-2 block text-sm font-semibold"
-              >
-                Cari satwa
-              </label>
-
-              <div className="flex items-center gap-3 rounded-full border border-[#e5e7dc] bg-[#faf9f4] px-4 py-3 focus-within:border-[#64815c]">
-                <span aria-hidden="true">⌕</span>
-
-                <input
-                  id="search-animal"
-                  type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Nama satwa atau habitat..."
-                  className="w-full bg-transparent text-sm outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* FILTER */}
-          <div className="mt-7 flex flex-wrap gap-2">
-            {["Semua", "Ikan", "Mamalia"].map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setActiveType(type)}
-                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
-                  activeType === type
-                    ? "bg-[#315b40] text-white"
-                    : "border border-[#e5e7dc] bg-white text-[#60685d] hover:bg-[#edf0e7]"
-                }`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-
-          {/* CARDS */}
-          <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {filteredAnimals.map((animal, index) => (
-              <article
-                key={animal.name}
-                className="group overflow-hidden rounded-2xl border border-[#e9e9df] bg-[#faf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="relative h-56 overflow-hidden bg-[#e5e9df]">
-                  <img
-                    src={animal.image}
-                    alt={animal.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
-
-                  <span className="absolute left-4 top-4 rounded-full bg-[#faf9f4]/95 px-3 py-1.5 text-xs font-bold text-[#315b40]">
-                    {animal.type}
-                  </span>
-
-                  <span className="absolute bottom-3 right-4 text-sm font-bold text-white drop-shadow">
-                    0{index + 1}
-                  </span>
-                </div>
-
-                <div className="p-5">
-                  <h3 className="text-xl font-bold">{animal.name}</h3>
-
-                  <p className="mt-1 text-sm italic text-[#858b7e]">
-                    {animal.scientific}
-                  </p>
-
-                  <p className="mt-4 text-sm leading-7 text-[#73796e]">
-                    {animal.description}
-                  </p>
-
-                  <div className="mt-5 border-t border-[#e5e7dc] pt-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-[#858b7e]">
-                      Habitat
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-[#315b40]">
-                      {animal.habitat}
-                    </p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          {filteredAnimals.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-[#d9dfd2] py-14 text-center">
-              <p className="text-lg font-bold">Satwa belum ditemukan.</p>
-              <p className="mt-2 text-sm text-[#73796e]">
-                Coba nama lain atau pilih filter Semua.
-              </p>
-
-              <button
-                onClick={() => {
-                  setSearch("");
-                  setActiveType("Semua");
-                }}
-                className="mt-5 rounded-full bg-[#315b40] px-5 py-2.5 text-sm font-semibold text-white"
-              >
-                Reset pencarian
-              </button>
-            </div>
-          )}
-        </div>
+      <section id="jelajahi" className="bg-white py-16 sm:py-20">
+        <ZoneAnimalGrid
+          zone="air-tawar"
+          filters={[{ label: "Semua", value: "Semua" }]}
+          searchPlaceholder="Nama satwa atau habitat..."
+          badgeLabel={(animal, activeFilter) =>
+            activeFilter === "Semua"
+              ? animal.category_name || "Satwa"
+              : activeFilter
+          }
+        />
       </section>
-      )}
 
       {/* EDUCATION */}
       <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20 lg:px-10">

@@ -1,79 +1,7 @@
-"use client";
+﻿"use client";
 
-import { useMemo, useState } from "react";
 import AnimalHighlights from "@/components/AnimalHighlights";
-
-const reptiles = [
-  {
-    name: "Komodo",
-    category: "Kadal",
-    scientific: "Varanus komodoensis",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/202306_Varanus_komodoensis.jpg/1280px-202306_Varanus_komodoensis.jpg",
-    description:
-      "Kadal terbesar di dunia yang berasal dari Indonesia dan hidup di beberapa pulau Nusa Tenggara.",
-    habitat: "Pulau-pulau Nusa Tenggara",
-  },
-  {
-    name: "Buaya Muara",
-    category: "Buaya",
-    scientific: "Crocodylus porosus",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/SaltwaterCrocodile%28%27Maximo%27%29.jpg/1280px-SaltwaterCrocodile%28%27Maximo%27%29.jpg",
-    description:
-      "Reptil besar yang dapat ditemukan di wilayah pesisir, muara sungai, dan perairan payau.",
-    habitat: "Pesisir dan muara sungai",
-  },
-  {
-    name: "Iguana",
-    category: "Kadal",
-    scientific: "Iguana iguana",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Iguana_iguana_%28male_resting%29.jpg/1280px-Iguana_iguana_%28male_resting%29.jpg",
-    description:
-      "Reptil yang banyak menghabiskan waktu di pepohonan dan memakan tumbuhan.",
-    habitat: "Pepohonan hutan tropis",
-  },
-  {
-    name: "Penyu Hijau",
-    category: "Penyu",
-    scientific: "Chelonia mydas",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Green_sea_turtle_%28Chelonia_mydas%29_Moorea.jpg/1280px-Green_sea_turtle_%28Chelonia_mydas%29_Moorea.jpg",
-    description:
-      "Reptil laut yang berperan menjaga keseimbangan ekosistem padang lamun.",
-    habitat: "Laut tropis dan padang lamun",
-  },
-  {
-    name: "Sanca Batik",
-    category: "Ular",
-    scientific: "Malayopython reticulatus",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Python_reticulatus_%D1%81%D0%B5%D1%82%D1%87%D0%B0%D1%82%D1%8B%D0%B9_%D0%BF%D0%B8%D1%82%D0%BE%D0%BD-2.jpg/1280px-Python_reticulatus_%D1%81%D0%B5%D1%82%D1%87%D0%B0%D1%82%D1%8B%D0%B9_%D0%BF%D0%B8%D1%82%D0%BE%D0%BD-2.jpg",
-    description:
-      "Salah satu ular terpanjang di dunia yang hidup di berbagai habitat tropis.",
-    habitat: "Hutan tropis Indonesia",
-  },
-  {
-    name: "Kura-Kura",
-    category: "Kura-kura",
-    scientific: "Testudines",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Galapagos_giant_tortoise_Geochelone_elephantopus.jpg/1280px-Galapagos_giant_tortoise_Geochelone_elephantopus.jpg",
-    description:
-      "Reptil bercangkang yang memiliki beragam spesies dengan habitat darat maupun air tawar.",
-    habitat: "Darat dan air tawar",
-  },
-];
-
-const categories = [
-  "Semua",
-  "Kadal",
-  "Buaya",
-  "Penyu",
-  "Ular",
-  "Kura-kura",
-];
+import ZoneAnimalGrid from "@/components/ZoneAnimalGrid";
 
 const facts = [
   {
@@ -97,22 +25,6 @@ const facts = [
 ];
 
 export default function ReptilesPage() {
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("Semua");
-
-  const filteredReptiles = useMemo(() => {
-    return reptiles.filter((reptile) => {
-      const matchesSearch =
-        `${reptile.name} ${reptile.scientific} ${reptile.habitat}`
-          .toLowerCase()
-          .includes(search.toLowerCase());
-
-      const matchesCategory =
-        activeCategory === "Semua" || reptile.category === activeCategory;
-
-      return matchesSearch && matchesCategory;
-    });
-  }, [search, activeCategory]);
 
   return (
     <main className="font-serif-headings min-h-screen bg-[#faf9f4] text-[#27352b]">
@@ -218,139 +130,18 @@ export default function ReptilesPage() {
 
       {/* REPTILE EXPLORER */}
       <AnimalHighlights location="reptil" title="Highlight Satwa" description="Kenali satwa pilihan dari zona ini dan jelajahi informasi lengkapnya." />
-      {false && (
-      <section id="jelajahi" className="bg-white py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-5 lg:px-10">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#64815c]">
-                Ensiklopedia Satwa
-              </p>
-
-              <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-                Kenali Dunia Reptil
-              </h2>
-
-              <p className="mt-3 max-w-lg leading-7 text-[#73796e]">
-                Temukan berbagai jenis reptil dan keunikan kehidupannya.
-              </p>
-            </div>
-
-            <div className="w-full md:max-w-sm">
-              <label
-                htmlFor="search-reptile"
-                className="mb-2 block text-sm font-semibold"
-              >
-                Cari reptil
-              </label>
-
-              <div className="flex items-center gap-3 rounded-full border border-[#e5e7dc] bg-[#faf9f4] px-4 py-3 focus-within:border-[#64815c]">
-                <span aria-hidden="true">⌕</span>
-
-                <input
-                  id="search-reptile"
-                  type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Cari nama reptil..."
-                  className="w-full bg-transparent text-sm outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* FILTER */}
-          <div className="mt-7 flex flex-wrap gap-2">
-            {categories.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setActiveCategory(item)}
-                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
-                  activeCategory === item
-                    ? "bg-[#315b40] text-white"
-                    : "border border-[#e5e7dc] bg-white text-[#60685d] hover:bg-[#edf0e7]"
-                }`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-
-          {/* CARDS */}
-          <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {filteredReptiles.map((reptile, index) => (
-              <article
-                key={reptile.name}
-                className="group overflow-hidden rounded-2xl border border-[#e9e9df] bg-[#faf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="relative h-56 overflow-hidden bg-[#e5e9df]">
-                  <img
-                    src={reptile.image}
-                    alt={reptile.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
-
-                  <span className="absolute left-4 top-4 rounded-full bg-[#faf9f4]/95 px-3 py-1.5 text-xs font-bold text-[#315b40]">
-                    {reptile.category}
-                  </span>
-
-                  <span className="absolute bottom-3 right-4 text-sm font-bold text-white drop-shadow">
-                    0{index + 1}
-                  </span>
-                </div>
-
-                <div className="p-5">
-                  <h3 className="text-xl font-bold">{reptile.name}</h3>
-
-                  <p className="mt-1 text-sm italic text-[#858b7e]">
-                    {reptile.scientific}
-                  </p>
-
-                  <p className="mt-4 text-sm leading-7 text-[#73796e]">
-                    {reptile.description}
-                  </p>
-
-                  <div className="mt-5 border-t border-[#e5e7dc] pt-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-[#858b7e]">
-                      Habitat
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-[#315b40]">
-                      {reptile.habitat}
-                    </p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          {filteredReptiles.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-[#d9dfd2] py-14 text-center">
-              <p className="text-lg font-bold">
-                Reptil tidak ditemukan. Coba kata kunci lain, ya!
-              </p>
-
-              <p className="mt-2 text-sm text-[#73796e]">
-                Coba nama lain atau pilih filter Semua.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setActiveCategory("Semua");
-                }}
-                className="mt-5 rounded-full bg-[#315b40] px-5 py-2.5 text-sm font-semibold text-white"
-              >
-                Reset pencarian
-              </button>
-            </div>
-          )}
-        </div>
+      <section id="jelajahi" className="bg-white py-16 sm:py-20">
+        <ZoneAnimalGrid
+          zone="reptil"
+          filters={[{ label: "Semua", value: "Semua" }]}
+          searchPlaceholder="Nama reptil atau habitat..."
+          badgeLabel={(animal, activeFilter) =>
+            activeFilter === "Semua"
+              ? animal.category_name || "Satwa"
+              : activeFilter
+          }
+        />
       </section>
-      )}
 
       {/* EDUCATION */}
       <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20 lg:px-10">
