@@ -13,8 +13,8 @@
  * seperti `DATE(created_at)` di database, sehingga tidak ada pergeseran hari
  * atau bulan.
  *
- * Event `api_request` TIDAK dihitung — hanya `page_view` yang mewakili
- * satu kunjungan pengunjung.
+ * Event `api_request` TIDAK dihitung. Grafik memakai unique visitor harian:
+ * satu `actor_public_id` dihitung maksimal sekali per tanggal UTC.
  */
 
 import { logsApi } from './api';
@@ -77,11 +77,16 @@ export const buildDailyVisits = (
   const daysInMonth = getDaysInMonth(month, year);
   const prefix = `${year}-${String(month).padStart(2, '0')}`;
 
-  const counters = new Map<string, number>();
+  const visitorsByDay = new Map<string, Set<string>>();
   events.forEach((event) => {
     const dayKey = toDayKey(event.created_at);
     if (!dayKey || !dayKey.startsWith(prefix)) return;
-    counters.set(dayKey, (counters.get(dayKey) ?? 0) + 1);
+
+    // Actor ID berasal dari guest cookie/admin identity yang sudah disanitasi backend.
+    const visitorId = event.actor_public_id || `event:${event.id}`;
+    const visitors = visitorsByDay.get(dayKey) ?? new Set<string>();
+    visitors.add(visitorId);
+    visitorsByDay.set(dayKey, visitors);
   });
 
   const daily: DailyVisit[] = [];
@@ -90,7 +95,7 @@ export const buildDailyVisits = (
     daily.push({
       date,
       label: String(day),
-      visits: counters.get(date) ?? 0,
+      visits: visitorsByDay.get(date)?.size ?? 0,
     });
   }
 

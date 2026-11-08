@@ -1,70 +1,7 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
 import AnimalHighlights from "@/components/AnimalHighlights";
-
-const insects = [
-  {
-    name: "Kupu-Kupu",
-    scientific: "Lepidoptera",
-    type: "Penyerbuk",
-    image:
-      "https://images.unsplash.com/photo-1551059129-6d9d4c6b3c8a?w=900&q=85",
-    description:
-      "Membantu penyerbukan bunga dan mengalami metamorfosis sempurna.",
-    habitat: "Taman dan hutan",
-  },
-  {
-    name: "Lebah",
-    scientific: "Anthophila",
-    type: "Penyerbuk",
-    image:
-      "https://images.unsplash.com/photo-1587049352851-8d4e89133924?w=900&q=85",
-    description:
-      "Berperan penting dalam penyerbukan berbagai tumbuhan berbunga.",
-    habitat: "Kebun dan padang bunga",
-  },
-  {
-    name: "Semut",
-    scientific: "Formicidae",
-    type: "Sosial",
-    image:
-      "https://images.unsplash.com/photo-1563823251941-6f6c5c6c9b8e?w=900&q=85",
-    description:
-      "Hidup berkoloni dan bekerja sama mencari makanan serta membangun sarang.",
-    habitat: "Tanah dan kawasan hutan",
-  },
-  {
-    name: "Belalang",
-    scientific: "Caelifera",
-    type: "Herbivora",
-    image:
-      "https://images.unsplash.com/photo-1620662736427-b8a198f52a4d?w=900&q=85",
-    description:
-      "Memakan tumbuhan dan menjadi sumber makanan bagi sejumlah hewan lain.",
-    habitat: "Padang rumput dan kebun",
-  },
-  {
-    name: "Kumbang",
-    scientific: "Coleoptera",
-    type: "Pengurai",
-    image:
-      "https://images.unsplash.com/photo-1504512485720-7d83a16ee930?w=900&q=85",
-    description:
-      "Memiliki banyak jenis dengan peran berbeda dalam menjaga ekosistem.",
-    habitat: "Hutan dan tanah",
-  },
-  {
-    name: "Capung",
-    scientific: "Odonata",
-    type: "Predator",
-    image:
-      "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=900&q=85",
-    description:
-      "Membantu mengendalikan populasi serangga kecil dan sering ditemukan dekat perairan.",
-    habitat: "Kolam dan sungai",
-  },
-];
+import ZoneAnimalGrid from "@/components/ZoneAnimalGrid";
 
 const facts = [
   {
@@ -87,30 +24,7 @@ const facts = [
   },
 ];
 
-const types = [
-  "Semua",
-  "Penyerbuk",
-  "Sosial",
-  "Herbivora",
-  "Pengurai",
-  "Predator",
-];
-
 export default function InsectsPage() {
-  const [search, setSearch] = useState("");
-  const [activeType, setActiveType] = useState("Semua");
-
-  const filteredInsects = insects.filter((insect) => {
-    const matchesSearch =
-      `${insect.name} ${insect.scientific} ${insect.habitat}`
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-    const matchesType =
-      activeType === "Semua" || insect.type === activeType;
-
-    return matchesSearch && matchesType;
-  });
 
   return (
     <main className="font-serif-headings min-h-screen bg-[#faf9f4] text-[#27352b]">
@@ -218,135 +132,18 @@ export default function InsectsPage() {
 
       {/* INSECT EXPLORER */}
       <AnimalHighlights location="serangga" title="Highlight Satwa" description="Kenali satwa pilihan dari zona ini dan jelajahi informasi lengkapnya." />
-      {false && (
-      <section id="jelajahi" className="bg-white py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-5 lg:px-10">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#64815c]">
-                Ensiklopedia Serangga
-              </p>
-
-              <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-                Jelajahi Koleksi
-              </h2>
-
-              <p className="mt-3 max-w-lg leading-7 text-[#73796e]">
-                Kenali ciri khas, kelompok, dan habitat berbagai serangga.
-              </p>
-            </div>
-
-            <div className="w-full md:max-w-sm">
-              <label
-                htmlFor="search-insect"
-                className="mb-2 block text-sm font-semibold"
-              >
-                Cari serangga
-              </label>
-
-              <div className="flex items-center gap-3 rounded-full border border-[#e5e7dc] bg-[#faf9f4] px-4 py-3 focus-within:border-[#64815c]">
-                <span aria-hidden="true">⌕</span>
-
-                <input
-                  id="search-insect"
-                  type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Nama serangga atau habitat..."
-                  className="w-full bg-transparent text-sm outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* FILTER */}
-          <div className="mt-7 flex flex-wrap gap-2">
-            {types.map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setActiveType(type)}
-                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
-                  activeType === type
-                    ? "bg-[#315b40] text-white"
-                    : "border border-[#e5e7dc] bg-white text-[#60685d] hover:bg-[#edf0e7]"
-                }`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-
-          {/* CARDS */}
-          <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {filteredInsects.map((insect, index) => (
-              <article
-                key={insect.name}
-                className="group overflow-hidden rounded-2xl border border-[#e9e9df] bg-[#faf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="relative h-56 overflow-hidden bg-[#e5e9df]">
-                  <img
-                    src={insect.image}
-                    alt={insect.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
-
-                  <span className="absolute left-4 top-4 rounded-full bg-[#faf9f4]/95 px-3 py-1.5 text-xs font-bold text-[#315b40]">
-                    {insect.type}
-                  </span>
-
-                  <span className="absolute bottom-3 right-4 text-sm font-bold text-white drop-shadow">
-                    0{index + 1}
-                  </span>
-                </div>
-
-                <div className="p-5">
-                  <h3 className="text-xl font-bold">{insect.name}</h3>
-
-                  <p className="mt-1 text-sm italic text-[#858b7e]">
-                    {insect.scientific}
-                  </p>
-
-                  <p className="mt-4 text-sm leading-7 text-[#73796e]">
-                    {insect.description}
-                  </p>
-
-                  <div className="mt-5 border-t border-[#e5e7dc] pt-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-[#858b7e]">
-                      Habitat
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-[#315b40]">
-                      {insect.habitat}
-                    </p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          {filteredInsects.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-[#d9dfd2] py-14 text-center">
-              <p className="text-lg font-bold">Serangga belum ditemukan.</p>
-              <p className="mt-2 text-sm text-[#73796e]">
-                Coba nama lain atau pilih filter Semua.
-              </p>
-
-              <button
-                onClick={() => {
-                  setSearch("");
-                  setActiveType("Semua");
-                }}
-                className="mt-5 rounded-full bg-[#315b40] px-5 py-2.5 text-sm font-semibold text-white"
-              >
-                Reset pencarian
-              </button>
-            </div>
-          )}
-        </div>
+      <section id="jelajahi" className="bg-white py-16 sm:py-20">
+        <ZoneAnimalGrid
+          zone="serangga"
+          filters={[{ label: "Semua", value: "Semua" }]}
+          searchPlaceholder="Nama serangga atau habitat..."
+          badgeLabel={(animal, activeFilter) =>
+            activeFilter === "Semua"
+              ? animal.category_name || "Satwa"
+              : activeFilter
+          }
+        />
       </section>
-      )}
 
       {/* EDUCATION */}
       <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20 lg:px-10">

@@ -75,7 +75,7 @@ app.use(
 // Rate Limiting: global limit
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 menit
-  max: 100,
+  max: 60,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

@@ -1,78 +1,7 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
 import AnimalHighlights from "@/components/AnimalHighlights";
-
-const birds = [
-  {
-    name: "Cenderawasih",
-    scientific: "Paradisaeidae",
-    category: "Burung Hias",
-    image:
-      "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=900&q=85",
-    description:
-      "Burung khas Papua yang terkenal dengan bulu indah dan perilaku uniknya. Cenderawasih menjadi salah satu kekayaan keanekaragaman hayati Indonesia.",
-    habitat: "Hutan tropis Papua",
-  },
-  {
-    name: "Elang Jawa",
-    scientific: "Nisaetus bartelsi",
-    category: "Burung Pemangsa",
-    image:
-      "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=900&q=85",
-    description:
-      "Burung pemangsa yang memiliki penglihatan tajam dan cakar kuat. Elang Jawa merupakan salah satu satwa endemik Indonesia yang dilindungi.",
-    habitat: "Hutan pegunungan Jawa",
-  },
-  {
-    name: "Merak Hijau",
-    scientific: "Pavo muticus",
-    category: "Burung Hias",
-    image:
-      "https://images.unsplash.com/photo-1551986782-d0169b3f8fa7?w=900&q=85",
-    description:
-      "Burung dengan bulu ekor yang mencolok dan indah. Merak menggunakan tampilan bulunya dalam perilaku menarik pasangan.",
-    habitat: "Hutan terbuka dan padang rumput",
-  },
-  {
-    name: "Kakatua",
-    scientific: "Cacatuidae",
-    category: "Burung Hias",
-    image:
-      "https://images.unsplash.com/photo-1549608276-5786777e6587?w=900&q=85",
-    description:
-      "Burung cerdas dengan jambul khas yang dapat ditegakkan. Kakatua memiliki kemampuan belajar dan berinteraksi dengan lingkungannya.",
-    habitat: "Hutan tropis dan kawasan berhutan",
-  },
-  {
-    name: "Burung Hantu",
-    scientific: "Strigiformes",
-    category: "Burung Nokturnal",
-    image:
-      "https://images.unsplash.com/photo-1579448659766-6f3f2f7f9c3e?w=900&q=85",
-    description:
-      "Burung yang umumnya aktif pada malam hari. Pendengaran dan penglihatannya membantu menemukan mangsa dalam kondisi cahaya rendah.",
-    habitat: "Hutan, kebun, dan pepohonan",
-  },
-  {
-    name: "Flamingo",
-    scientific: "Phoenicopteridae",
-    category: "Burung Air",
-    image:
-      "https://images.unsplash.com/photo-1497206365907-f5e630693df0?w=900&q=85",
-    description:
-      "Burung berkaki panjang yang mencari makanan di perairan dangkal. Warna merah muda pada bulunya berkaitan dengan pigmen dari makanan.",
-    habitat: "Danau dangkal dan lahan basah",
-  },
-];
-
-const categories = [
-  "Semua",
-  "Burung Hias",
-  "Burung Pemangsa",
-  "Burung Nokturnal",
-  "Burung Air",
-];
+import ZoneAnimalGrid from "@/components/ZoneAnimalGrid";
 
 const facts = [
   {
@@ -96,20 +25,6 @@ const facts = [
 ];
 
 export default function BirdsPage() {
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("Semua");
-
-  const filteredBirds = birds.filter((bird) => {
-    const matchesSearch = `${bird.name} ${bird.scientific} ${bird.habitat}`
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
-    const matchesCategory =
-      activeCategory === "Semua" ||
-      bird.category === activeCategory;
-
-    return matchesSearch && matchesCategory;
-  });
 
   return (
     <main className="font-serif-headings min-h-screen bg-[#faf9f4] text-[#27352b]">
@@ -216,137 +131,18 @@ export default function BirdsPage() {
 
       {/* BIRD EXPLORER */}
       <AnimalHighlights location="burung" title="Highlight Satwa" description="Kenali satwa pilihan dari zona ini dan jelajahi informasi lengkapnya." />
-      {false && (
-      <section id="jelajahi" className="bg-white py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-5 lg:px-10">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#64815c]">
-                Ensiklopedia Satwa
-              </p>
-
-              <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-                Penghuni Taman Burung
-              </h2>
-
-              <p className="mt-3 max-w-lg leading-7 text-[#73796e]">
-                Kenali burung, ciri khas, dan lingkungan tempat mereka hidup.
-              </p>
-            </div>
-
-            <div className="w-full md:max-w-sm">
-              <label
-                htmlFor="search-bird"
-                className="mb-2 block text-sm font-semibold"
-              >
-                Cari burung
-              </label>
-
-              <div className="flex items-center gap-3 rounded-full border border-[#e5e7dc] bg-[#faf9f4] px-4 py-3 focus-within:border-[#64815c]">
-                <span aria-hidden="true">⌕</span>
-
-                <input
-                  id="search-bird"
-                  type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Nama burung atau habitat..."
-                  className="w-full bg-transparent text-sm outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* FILTER */}
-          <div className="mt-7 flex flex-wrap gap-2">
-            {categories.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setActiveCategory(item)}
-                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
-                  activeCategory === item
-                    ? "bg-[#315b40] text-white"
-                    : "border border-[#e5e7dc] bg-white text-[#60685d] hover:bg-[#edf0e7]"
-                }`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-
-          {/* CARDS */}
-          <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {filteredBirds.map((bird, index) => (
-              <article
-                key={bird.name}
-                className="group overflow-hidden rounded-2xl border border-[#e9e9df] bg-[#faf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="relative h-56 overflow-hidden bg-[#e5e9df]">
-                  <img
-                    src={bird.image}
-                    alt={bird.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
-
-                  <span className="absolute left-4 top-4 rounded-full bg-[#faf9f4]/95 px-3 py-1.5 text-xs font-bold text-[#315b40]">
-                    {bird.category}
-                  </span>
-
-                  <span className="absolute bottom-3 right-4 text-sm font-bold text-white drop-shadow">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                </div>
-
-                <div className="p-5">
-                  <h3 className="text-xl font-bold">{bird.name}</h3>
-
-                  <p className="mt-1 text-sm italic text-[#858b7e]">
-                    {bird.scientific}
-                  </p>
-
-                  <p className="mt-4 text-sm leading-7 text-[#73796e]">
-                    {bird.description}
-                  </p>
-
-                  <div className="mt-5 border-t border-[#e5e7dc] pt-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-[#858b7e]">
-                      Habitat
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-[#315b40]">
-                      {bird.habitat}
-                    </p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          {filteredBirds.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-[#d9dfd2] py-14 text-center">
-              <p className="text-lg font-bold">Burung belum ditemukan.</p>
-
-              <p className="mt-2 text-sm text-[#73796e]">
-                Coba nama lain atau pilih filter Semua.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setActiveCategory("Semua");
-                }}
-                className="mt-5 rounded-full bg-[#315b40] px-5 py-2.5 text-sm font-semibold text-white"
-              >
-                Reset pencarian
-              </button>
-            </div>
-          )}
-        </div>
+      <section id="jelajahi" className="bg-white py-16 sm:py-20">
+        <ZoneAnimalGrid
+          zone="burung"
+          filters={[{ label: "Semua", value: "Semua" }]}
+          searchPlaceholder="Nama burung atau habitat..."
+          badgeLabel={(animal, activeFilter) =>
+            activeFilter === "Semua"
+              ? animal.category_name || "Satwa"
+              : activeFilter
+          }
+        />
       </section>
-      )}
 
       {/* EDUCATION */}
       <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20 lg:px-10">

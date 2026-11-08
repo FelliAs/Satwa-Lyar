@@ -45,6 +45,9 @@ export default function Navbar() {
           </div>
           <Link href="/#tentang">Tentang</Link>
           <Link href="/#faq">FAQ</Link>
+          <Link href="/kuis">Kuis</Link>
+          <Link href="/favorit">Favorit</Link>
+          <Link href="/profil">Profil</Link>
         </nav>
         <span className="header-tagline hidden xl:block">DEKAT DENGAN ALAM</span>
         <button type="button" className="mobile-menu-toggle xl:hidden" aria-label={menuOpen ? "Tutup navigasi" : "Buka navigasi"} aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>{menuOpen ? "×" : "☰"}</button>
@@ -58,6 +61,9 @@ export default function Navbar() {
         {destinationsOpen && <div className="mobile-destinations-list">{zones.map((zone) => <Link key={zone.href} href={zone.href} onClick={closeMenus}>{zone.label}<span aria-hidden="true">↗</span></Link>)}</div>}
         <Link href="/#tentang" onClick={closeMenus} className="mobile-nav-heading">Tentang</Link>
         <Link href="/#faq" onClick={closeMenus} className="mobile-nav-heading">FAQ</Link>
+        <Link href="/kuis" onClick={closeMenus} className="mobile-nav-heading">Kuis</Link>
+        <Link href="/favorit" onClick={closeMenus} className="mobile-nav-heading">Favorit</Link>
+        <Link href="/profil" onClick={closeMenus} className="mobile-nav-heading">Profil</Link>
         <div className="mobile-nav-bottom"><a href="/#zona" onClick={closeMenus}>Jelajahi Satwa <span>↗</span></a><p>Kenali lebih dekat. Peduli lebih dalam.</p></div>
       </nav>}
     </header>

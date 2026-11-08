@@ -26,6 +26,7 @@
 import type {
   AdminUser,
   AdminAccount,
+  AdminHighlight,
   Animal,
   AnimalListResponse,
   AnimalMutationResponse,
@@ -33,11 +34,17 @@ import type {
   ApiSuccess,
   Category,
   DashboardResponse,
+  FavoriteEntry,
   LoginResponse,
   LogsResponse,
   Pagination,
+  PublicAnimal,
+  PublicQuiz,
   Quiz,
+  QuizHistoryEntry,
   QuizQuestion,
+  QuizSubmitResult,
+  UserProfile,
 } from './types';
 
 export const API_BASE_URL = (
@@ -276,6 +283,17 @@ export const categoriesApi = {
     apiRequest<ApiSuccess<Category>>(`/api/admin/categories/${id}`, { method: 'PUT', body: JSON.stringify(input), signal }),
   remove: (id: number, signal?: AbortSignal) =>
     apiRequest<ApiSuccess<null>>(`/api/admin/categories/${id}`, { method: 'DELETE', signal }),
+
+  /** Daftar zona/kategori publik (tanpa token admin). */
+  getPublic: (signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<Category[]>>('/api/categories', { signal, skipAuthRedirect: true }),
+
+  /** Detail zona + daftar satwa di dalamnya (id numerik atau slug). */
+  getPublicByIdentifier: (identifier: string | number, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<Category & { animals: PublicAnimal[] }>>(
+      `/api/categories/${encodeURIComponent(String(identifier))}`,
+      { signal, skipAuthRedirect: true }
+    ),
 };
 
 export interface QuizQuestionInput {
@@ -351,6 +369,8 @@ export interface AnimalListParams {
   status?: string;
   /** `newest` | `oldest` | `name_asc` | `name_desc`. */
   sort?: string;
+  /** Filter kategori berdasarkan slug zona, contoh: `air-tawar`. */
+  zone?: string;
 }
 
 export const animalsApi = {
@@ -442,6 +462,219 @@ export const highlightsApi = {
       `/api/highlights?location=${encodeURIComponent(location)}`,
       { signal, skipAuthRedirect: true }
     ),
+};
+
+/* =========================
+ * SATWA PUBLIK (PENGUNJUNG)
+ * ========================= */
+
+/**
+ * Daftar satwa untuk halaman zona & daftar publik.
+ *
+ * Berbeda dengan `animalsApi.list` (dipakai panel admin), versi ini memakai
+ * `skipAuthRedirect` sehingga 401/403 tidak memaksa admin keluar dari panel,
+ * dan mengembalikan `is_favorite` untuk identitas yang sedang aktif.
+ */
+export const publicAnimalsApi = {
+  list: async (
+    params: AnimalListParams,
+    signal?: AbortSignal
+  ): Promise<AnimalListResponse & { data: PublicAnimal[] }> => {
+    const query = buildQuery({
+      page: params.page,
+      limit: params.limit,
+      search: params.search,
+      category_id: params.category_id,
+      status: params.status,
+      sort: params.sort,
+      zone: params.zone,
+    });
+
+    const response = await apiRequest<{
+      success: boolean;
+      data: Record<string, unknown>[];
+      pagination: Pagination;
+    }>(`/api/animals${query}`, { signal, skipAuthRedirect: true });
+
+    return {
+      ...response,
+      data: (response.data ?? []).map((raw) => ({
+        ...normalizeAnimal(raw),
+        is_favorite: Boolean(raw.is_favorite),
+      })),
+    };
+  },
+
+  /** Detail satwa publik lengkap dengan status favorit & satwa terkait. */
+  getById: async (id: string | number, signal?: AbortSignal) => {
+    const response = await apiRequest<{
+      success: boolean;
+      data: Record<string, unknown>;
+    }>(`/api/animals/${encodeURIComponent(String(id))}`, {
+      signal,
+      skipAuthRedirect: true,
+    });
+
+    return { ...response, data: normalizeAnimal(response.data) };
+  },
+};
+
+/* =========================
+ * FAVORIT
+ * ========================= */
+
+export const favoritesApi = {
+  list: (params: { page?: number; limit?: number } = {}, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<FavoriteEntry[]> & { pagination: Pagination }>(
+      `/api/favorites${buildQuery(params)}`,
+      { signal, skipAuthRedirect: true }
+    ),
+
+  /** Status favorit satu satwa. */
+  check: (animalId: number, signal?: AbortSignal) =>
+    apiRequest<{ success: boolean; animal_id: number; is_favorite: boolean }>(
+      `/api/favorites/check/${animalId}`,
+      { signal, skipAuthRedirect: true }
+    ),
+
+  add: (animalId: number, signal?: AbortSignal) =>
+    apiRequest<{ success: boolean; message?: string; is_favorite: boolean }>(
+      `/api/favorites/${animalId}`,
+      { method: 'POST', signal, skipAuthRedirect: true }
+    ),
+
+  remove: (animalId: number, signal?: AbortSignal) =>
+    apiRequest<{ success: boolean; message?: string; is_favorite: boolean }>(
+      `/api/favorites/${animalId}`,
+      { method: 'DELETE', signal, skipAuthRedirect: true }
+    ),
+};
+
+/* =========================
+ * KUIS PUBLIK & PENGGUNA
+ * ========================= */
+
+export const publicQuizApi = {
+  /** Daftar kuis aktif (dapat disaring per zona). */
+  list: (params: { category_id?: number; zone?: string } = {}, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<PublicQuiz[]>>(
+      `/api/quiz${buildQuery({ category_id: params.category_id, zone: params.zone })}`,
+      { signal, skipAuthRedirect: true }
+    ),
+
+  /** Soal kuis tanpa kunci jawaban. */
+  getById: (id: number, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<PublicQuiz>>(`/api/quiz/${id}`, {
+      signal,
+      skipAuthRedirect: true,
+    }),
+
+  /** Kirim jawaban, backend menghitung skor dan menyimpan riwayat. */
+  submit: (
+    id: number,
+    answers: Array<{ question_id: number; answer: string }>,
+    signal?: AbortSignal
+  ) =>
+    apiRequest<ApiSuccess<QuizSubmitResult>>(`/api/quiz/${id}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ answers }),
+      signal,
+      skipAuthRedirect: true,
+    }),
+
+  /** Riwayat pengerjaan kuis milik identitas aktif. */
+  history: (params: { page?: number; limit?: number } = {}, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<QuizHistoryEntry[]> & { pagination: Pagination }>(
+      `/api/quiz/history${buildQuery(params)}`,
+      { signal, skipAuthRedirect: true }
+    ),
+};
+
+/* =========================
+ * PROFIL PENGGUNA
+ * ========================= */
+
+export const usersApi = {
+  /** Profil + statistik aktivitas identitas aktif (admin atau guest). */
+  getProfile: (signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<UserProfile>>('/api/users/profile', {
+      signal,
+      skipAuthRedirect: true,
+    }),
+
+  /** Ubah nama profil — hanya admin yang memiliki profil yang dapat diubah. */
+  updateProfile: (name: string, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<AdminUser>>('/api/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ name }),
+      signal,
+      skipAuthRedirect: true,
+    }),
+
+  /** Ganti password — hanya admin yang memiliki password. */
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+    signal?: AbortSignal
+  ) =>
+    apiRequest<ApiSuccess<null>>('/api/users/password', {
+      method: 'PUT',
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+      signal,
+      skipAuthRedirect: true,
+    }),
+};
+
+/* =========================
+ * HIGHLIGHT (ADMIN)
+ * ========================= */
+
+export const adminHighlightsApi = {
+  list: (location?: string, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<AdminHighlight[]>>(
+      `/api/admin/highlights${buildQuery({ location })}`,
+      { signal }
+    ),
+
+  create: (
+    input: {
+      animal_id: number;
+      location: string;
+      is_active?: boolean;
+      priority?: number;
+    },
+    signal?: AbortSignal
+  ) =>
+    apiRequest<ApiSuccess<AdminHighlight>>('/api/admin/highlights', {
+      method: 'POST',
+      body: JSON.stringify(input),
+      signal,
+    }),
+
+  update: (
+    id: number,
+    input: Partial<{
+      animal_id: number;
+      location: string;
+      is_active: boolean;
+      priority: number;
+    }>,
+    signal?: AbortSignal
+  ) =>
+    apiRequest<ApiSuccess<AdminHighlight>>(`/api/admin/highlights/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+      signal,
+    }),
+
+  remove: (id: number, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<null>>(`/api/admin/highlights/${id}`, {
+      method: 'DELETE',
+      signal,
+    }),
 };
 
 /* =========================

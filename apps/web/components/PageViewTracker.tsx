@@ -5,6 +5,13 @@ import { usePathname } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 
 const SKIP_PREFIXES = ["/akses-admin", "/admin"];
+const ANALYTICS_ENABLED =
+  process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === undefined
+    ? process.env.NODE_ENV === "production"
+    : process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === "true";
+
+// Local/dev tracking mati default. Aktifkan eksplisit bila perlu debug analytics.
+
 
 /**
  * Mengirim notifikasi kunjungan halaman ke backend
@@ -14,6 +21,7 @@ export default function PageViewTracker() {
   const pathname = usePathname();
 
   useEffect(() => {
+    if (!ANALYTICS_ENABLED) return;
     if (!pathname) return;
     if (SKIP_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return;
 
