@@ -103,11 +103,17 @@ export const setStoredUser = (user: AdminUser): void => {
 
 export class ApiError extends Error {
   status: number;
+  details?: Array<{ field?: string; message?: string }>;
 
-  constructor(message: string, status: number) {
+  constructor(
+    message: string,
+    status: number,
+    details?: Array<{ field?: string; message?: string }>
+  ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.details = details;
   }
 }
 
@@ -179,7 +185,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       }
     }
 
-    throw new ApiError(message, response.status);
+    const details = Array.isArray((payload as { errors?: unknown } | null)?.errors)
+      ? ((payload as { errors: Array<{ field?: string; message?: string }> }).errors)
+      : undefined;
+
+    throw new ApiError(message, response.status, details);
   }
 
   return payload as T;

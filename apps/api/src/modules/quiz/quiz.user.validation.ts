@@ -19,6 +19,6 @@ export const submitQuizValidation = [
     .isLength({ min: 2, max: 50 })
     .withMessage('Nama pemain harus terdiri dari 2-50 karakter.'),
   body('display_name')
-    .matches(/^[\p{L}\p{N} ._'-]+$/u)
-    .withMessage('Nama pemain hanya boleh berisi huruf, angka, spasi, titik, garis bawah, atau tanda hubung.'),
+    .matches(/^[\p{L}\p{N} ]+$/u)
+    .withMessage('Nama pemain hanya boleh berisi huruf, angka, dan spasi.'),
 ];

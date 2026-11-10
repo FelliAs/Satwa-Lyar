@@ -8,4 +8,4 @@ dist/
 .vercel
 *.tsbuildinfo
 opencode.json
-
+graphify-out*
