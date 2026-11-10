@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Check, ClipboardList, Loader2, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
-import { categoriesApi, quizApi, type QuizQuestionInput } from '@/lib/api';
+import { ApiError, categoriesApi, quizApi, type QuizQuestionInput } from '@/lib/api';
 import type { Category, Quiz, QuizQuestion } from '@/lib/types';
 
 type QuizForm = {
@@ -34,6 +34,7 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const noticeLooksError = /gagal|wajib|harus|tidak valid|ditolak|error/i.test(notice);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selected, setSelected] = useState<Quiz | null>(null);
   const [quizForm, setQuizForm] = useState<QuizForm>(emptyQuizForm);
@@ -138,20 +139,47 @@ export default function QuizPage() {
   const handleSaveQuestion = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selected) return;
+    const input = {
+      ...questionForm,
+      question_text: questionForm.question_text.trim(),
+      option_a: questionForm.option_a.trim(),
+      option_b: questionForm.option_b.trim(),
+      option_c: questionForm.option_c.trim(),
+      option_d: questionForm.option_d.trim(),
+      order_num: Number(questionForm.order_num),
+    };
+
+    if (!input.question_text || !input.option_a || !input.option_b || !input.option_c || !input.option_d) {
+      setNotice('Pertanyaan dan semua opsi wajib diisi.');
+      return;
+    }
+    if (!Number.isInteger(input.order_num) || input.order_num < 1) {
+      setNotice('Urutan pertanyaan harus berupa angka positif.');
+      return;
+    }
+
     setSavingQuestion(true);
     setNotice('');
     try {
       if (editingQuestion) {
-        await quizApi.updateQuestion(selected.id, editingQuestion.id, questionForm);
+        await quizApi.updateQuestion(selected.id, editingQuestion.id, input);
       } else {
-        await quizApi.createQuestion(selected.id, questionForm);
+        await quizApi.createQuestion(selected.id, input);
       }
       const refreshed = await quizApi.getById(selected.id);
       setSelected(refreshed.data);
       resetQuestionForm();
       await loadData();
     } catch (err) {
-      setNotice(err instanceof Error ? err.message : 'Gagal menyimpan pertanyaan.');
+      if (err instanceof ApiError && err.details?.length) {
+        setNotice(
+          err.details
+            .map((detail) => `${detail.field ?? 'field'}: ${detail.message ?? 'tidak valid'}`)
+            .join(' ')
+        );
+      } else {
+        setNotice(err instanceof Error ? err.message : 'Gagal menyimpan pertanyaan.');
+      }
     } finally {
       setSavingQuestion(false);
     }
@@ -282,7 +310,7 @@ export default function QuizPage() {
           <div className="relative z-10 my-auto max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
             <h2 className="text-lg font-extrabold text-[var(--color-text)]">{selected ? 'Kelola quiz dan pertanyaan' : 'Tambah quiz'}</h2>
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">Lengkapi informasi quiz dan atur pertanyaan pilihan ganda.</p>
-            {notice && <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">{notice}</p>}
+            {notice && <p className={`mt-3 rounded-lg px-3 py-2 text-sm ${noticeLooksError ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`} role={noticeLooksError ? 'alert' : 'status'}>{notice}</p>}
             <form onSubmit={(event) => void handleSaveQuiz(event)} className="mt-5 space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="text-sm font-semibold text-slate-700 sm:col-span-2">

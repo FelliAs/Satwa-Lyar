@@ -9,3 +9,10 @@ dist/
 *.tsbuildinfo
 opencode.json
 graphify-out*
+
+# Next.js (cadangan, sudah di-handle apps/web/.gitignore)
+.next/
+next-env.d.ts
+
+# Secrets / keys
+*.pem

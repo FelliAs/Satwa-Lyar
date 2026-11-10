@@ -11,6 +11,12 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config({ path: path.resolve(process.cwd(), 'apps/api/.env') });
 
 const PORT = 5099; // Gunakan port terisolasi khusus tes validasi
+const validationAdminEmail = process.env.VALIDATION_ADMIN_EMAIL || process.env.ADMIN_EMAIL;
+const validationAdminPassword = process.env.VALIDATION_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD;
+
+if (!validationAdminEmail || !validationAdminPassword) {
+  throw new Error('VALIDATION_ADMIN_EMAIL dan VALIDATION_ADMIN_PASSWORD wajib diisi untuk npm run validate.');
+}
 
 const runValidation = async () => {
   console.log('\n======================================================');
@@ -80,7 +86,7 @@ const runValidation = async () => {
     // Periksa Admin Seed
     const [adminUser] = await conn.query(
       'SELECT id, public_id, name, email, is_admin FROM users WHERE email = ?',
-      ['admin@satwalyar.com']
+      [validationAdminEmail]
     );
     test(
       '4. Akun Admin Default di Database',
@@ -175,8 +181,8 @@ const runValidation = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: 'admin@satwalyar.com',
-        password: 'Admin1234',
+        email: validationAdminEmail,
+        password: validationAdminPassword,
       }),
     });
     const loginData = await loginRes.json();

@@ -148,7 +148,16 @@ export const createAnimal = async (
 
     // Upload gambar ke R2 jika ada file
     if (req.file) {
-      const ext = req.file.originalname.split('.').pop();
+      const extensionByMime: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp',
+        'image/gif': 'gif',
+      };
+      const ext = extensionByMime[req.file.mimetype];
+      if (!ext) {
+        return next(createError('Tipe gambar tidak diizinkan.', 400));
+      }
       image_key = `fauna/${uuidv4()}.${ext}`;
 
       await r2Client.send(
