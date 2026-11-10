@@ -169,6 +169,7 @@ CREATE TABLE IF NOT EXISTS quiz_questions (
 CREATE TABLE IF NOT EXISTS quiz_results (
   id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id     INT UNSIGNED NOT NULL,
+  display_name VARCHAR(50) NOT NULL DEFAULT 'Pengunjung',
   quiz_id     INT UNSIGNED NOT NULL,
   score       TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Nilai 0-100',
   total_questions INT UNSIGNED NOT NULL,

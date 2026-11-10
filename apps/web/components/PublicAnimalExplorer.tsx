@@ -44,7 +44,7 @@ export default function PublicAnimalExplorer({
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#64815c]">Data dari SATWA LYAR</p>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#64815c]">Data dari JSN-EDU</p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
             <p className="mt-3 max-w-lg leading-7 text-[#73796e]">Data ini terhubung langsung dengan katalog backend dan dapat dikelola dari panel admin.</p>
           </div>

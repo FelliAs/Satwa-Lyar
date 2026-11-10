@@ -185,7 +185,7 @@ export const getPublicAnimalById = async (
 
     const rows = await pool.query(
       `SELECT a.*,
-              c.id AS category_id, c.name AS category_name, c.slug AS category_slug, c.icon AS category_icon, c.description AS category_description
+              c.name AS category_name, c.slug AS category_slug, c.icon AS category_icon, c.description AS category_description
        FROM animals a
        LEFT JOIN categories c ON c.id = a.category_id
        WHERE a.id = ?`,

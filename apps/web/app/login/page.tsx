@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
@@ -17,6 +17,13 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   const { login, isAuthenticated, isLoading } = useAuth();
+  // Pastikan render pertama server dan client sama sebelum AuthContext
+  // membaca localStorage di browser.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -58,7 +65,7 @@ export default function LoginPage() {
     }
   };
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-mesh-nature">
         <Loader2 className="spinner h-8 w-8 text-emerald-600" />
@@ -77,7 +84,7 @@ export default function LoginPage() {
             <Leaf className="h-7 w-7 text-emerald-200" strokeWidth={2.3} />
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-emerald-950 sm:text-3xl">
-            SATWA LYAR
+            JSN-EDU
           </h1>
           <p className="mt-1 text-xs font-medium tracking-wide text-emerald-900/60">
             Portal Administrasi Pengelolaan Data Fauna
@@ -176,7 +183,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs font-medium text-emerald-950/40">
-          © SATWA LYAR 2026. Seluruh hak cipta dilindungi.
+          © JSN-EDU 2026. Seluruh hak cipta dilindungi.
         </p>
       </div>
     </div>

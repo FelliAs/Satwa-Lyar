@@ -1,5 +1,5 @@
 /**
- * API Client terpusat untuk SATWA LYAR Admin Frontend.
+ * API Client terpusat untuk JSN-EDU Admin Frontend.
  *
  * Semua request ke backend melewati fungsi `apiRequest` di file ini sehingga
  * base URL, header Authorization, penanganan error, dan redirect saat sesi
@@ -42,6 +42,7 @@ import type {
   PublicQuiz,
   Quiz,
   QuizHistoryEntry,
+  QuizLeaderboardEntry,
   QuizQuestion,
   QuizSubmitResult,
   UserProfile,
@@ -102,11 +103,17 @@ export const setStoredUser = (user: AdminUser): void => {
 
 export class ApiError extends Error {
   status: number;
+  details?: Array<{ field?: string; message?: string }>;
 
-  constructor(message: string, status: number) {
+  constructor(
+    message: string,
+    status: number,
+    details?: Array<{ field?: string; message?: string }>
+  ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.details = details;
   }
 }
 
@@ -151,7 +158,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       throw error;
     }
     throw new ApiError(
-      'Tidak dapat terhubung ke server SATWA LYAR. Periksa koneksi internet Anda.',
+      'Tidak dapat terhubung ke server JSN-EDU. Periksa koneksi internet Anda.',
       0
     );
   }
@@ -178,7 +185,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       }
     }
 
-    throw new ApiError(message, response.status);
+    const details = Array.isArray((payload as { errors?: unknown } | null)?.errors)
+      ? ((payload as { errors: Array<{ field?: string; message?: string }> }).errors)
+      : undefined;
+
+    throw new ApiError(message, response.status, details);
   }
 
   return payload as T;
@@ -572,12 +583,12 @@ export const publicQuizApi = {
   /** Kirim jawaban, backend menghitung skor dan menyimpan riwayat. */
   submit: (
     id: number,
-    answers: Array<{ question_id: number; answer: string }>,
+    input: { display_name: string; answers: Array<{ question_id: number; answer: string }> },
     signal?: AbortSignal
   ) =>
     apiRequest<ApiSuccess<QuizSubmitResult>>(`/api/quiz/${id}/submit`, {
       method: 'POST',
-      body: JSON.stringify({ answers }),
+      body: JSON.stringify(input),
       signal,
       skipAuthRedirect: true,
     }),
@@ -588,6 +599,11 @@ export const publicQuizApi = {
       `/api/quiz/history${buildQuery(params)}`,
       { signal, skipAuthRedirect: true }
     ),
+  leaderboard: (id: number, signal?: AbortSignal) =>
+    apiRequest<ApiSuccess<QuizLeaderboardEntry[]>>(`/api/quiz/${id}/leaderboard`, {
+      signal,
+      skipAuthRedirect: true,
+    }),
 };
 
 /* =========================

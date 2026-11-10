@@ -134,7 +134,7 @@ export default function AdminUsersPage() {
   return (
     <AdminLayout
       title="Administrator"
-      subtitle="Kelola akun yang memiliki akses ke panel administrasi SATWA LYAR."
+      subtitle="Kelola akun yang memiliki akses ke panel administrasi JSN-EDU."
     >
       <div className="space-y-5">
         <section className="grid gap-4 sm:grid-cols-2">

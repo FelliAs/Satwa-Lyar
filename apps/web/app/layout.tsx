@@ -6,7 +6,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import SiteChrome from "@/components/SiteChrome";
 
 export const metadata: Metadata = {
-  title: "SATWA LYAR — Jelajahi Dunia Satwa",
+  title: "JSN-EDU — Jelajahi Dunia Satwa",
   description:
     "Jelajahi Dunia Air Tawar, Dunia Serangga, Museum Komodo, Taman Burung, dan Farm House.",
 };

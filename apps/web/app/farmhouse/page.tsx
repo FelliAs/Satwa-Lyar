@@ -2,6 +2,7 @@
 
 import AnimalHighlights from "@/components/AnimalHighlights";
 import ZoneAnimalGrid from "@/components/ZoneAnimalGrid";
+import ZoneHeroImage from "@/components/ZoneHeroImage";
 
 const facts = [
   {
@@ -30,13 +31,7 @@ export default function FarmHousePage() {
     <main className="font-serif-headings min-h-screen bg-[#faf9f4] text-[#27352b]">
       {/* HERO */}
       <section className="relative isolate min-h-[520px] overflow-hidden bg-[#163d3b] sm:min-h-[580px]">
-        <div
-          className="absolute inset-0 -z-20 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=2000&q=85')",
-          }}
-        />
+        <ZoneHeroImage zone="farmhouse" />
 
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#102e2c]/95 via-[#102e2c]/75 to-[#102e2c]/25" />
 
@@ -200,7 +195,7 @@ export default function FarmHousePage() {
 
             <p className="mt-4 leading-7 text-white/70">
               Lanjutkan petualanganmu dan temukan dunia satwa lainnya di
-              SATWA LYAR.
+              JSN-EDU.
             </p>
           </div>
 

@@ -1,5 +1,5 @@
 /**
- * Utility formatting untuk SATWA LYAR Admin Frontend.
+ * Utility formatting untuk JSN-EDU Admin Frontend.
  *
  * CATATAN PENTING SOAL TANGGAL
  * ----------------------------

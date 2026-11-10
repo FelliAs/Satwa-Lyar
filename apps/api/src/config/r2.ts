@@ -17,6 +17,7 @@ const r2Client = new S3Client({
 });
 
 export const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME!;
-export const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL!;
+// Normalisasi trailing slash agar URL gambar tidak menjadi `//fauna/...`.
+export const R2_PUBLIC_URL = (process.env.R2_PUBLIC_URL || '').replace(/\/+$/, '');
 
 export default r2Client;

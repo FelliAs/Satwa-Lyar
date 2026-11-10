@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -14,6 +14,13 @@ import { useAuth } from '@/context/AuthContext';
  */
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
+  // Tahan render pertama agar markup server dan client selalu sama.
+  // AuthContext baru membaca localStorage setelah komponen ter-mount.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const router = useRouter();
   const pathname = usePathname();
 
@@ -24,7 +31,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     }
   }, [isAuthenticated, isLoading, router, pathname]);
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[var(--color-bg)]">
         <Loader2 className="spinner h-8 w-8 text-[var(--color-primary)]" />

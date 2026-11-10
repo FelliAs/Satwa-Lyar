@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import AnimalHighlights from "@/components/AnimalHighlights";
+import LandingDestinations from "@/components/LandingDestinations";
 
 const destinations = [
-  { name: "Dunia Air Tawar", kicker: "SUNGAI & DANAU", description: "Menyelami kehidupan yang mengalir di perairan kita.", image: "https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=900&q=85", href: "/airtawar" },
-  { name: "Dunia Serangga", kicker: "DUNIA KECIL, PERAN BESAR", description: "Melihat lebih dekat para penyerbuk dan pengurai alam.", image: "https://images.unsplash.com/photo-1559253664-ca249d4608c6?w=900&q=85", href: "/serangga" },
-  { name: "Museum Komodo", kicker: "JEJAK SANG PURBA", description: "Mengenal kadal terbesar dan habitat khasnya.", image: "https://images.unsplash.com/photo-1570741066052-817c6de995c8?w=900&q=85", href: "/reptils" },
-  { name: "Taman Burung", kicker: "SAYAP NUSANTARA", description: "Menemukan warna, suara, dan peran burung di alam.", image: "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=900&q=85", href: "/burung" },
-  { name: "Farm House", kicker: "KEHIDUPAN BERSAMA", description: "Belajar tentang satwa ternak dan cara merawatnya.", image: "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=900&q=85", href: "/farmhouse" },
+  { name: "Dunia Air Tawar", kicker: "SUNGAI & DANAU", description: "Menyelami kehidupan yang mengalir di perairan kita.", href: "/airtawar", zone: "air-tawar" },
+  { name: "Dunia Serangga", kicker: "DUNIA KECIL, PERAN BESAR", description: "Melihat lebih dekat para penyerbuk dan pengurai alam.", href: "/serangga", zone: "serangga" },
+  { name: "Museum Komodo", kicker: "JEJAK SANG PURBA", description: "Mengenal kadal terbesar dan habitat khasnya.", href: "/reptils", zone: "reptil" },
+  { name: "Taman Burung", kicker: "SAYAP NUSANTARA", description: "Menemukan warna, suara, dan peran burung di alam.", href: "/burung", zone: "burung" },
+  { name: "Farm House", kicker: "KEHIDUPAN BERSAMA", description: "Belajar tentang satwa ternak dan cara merawatnya.", href: "/farmhouse", zone: "farmhouse" },
 ];
 
 const faqs = [
@@ -19,8 +20,6 @@ const faqs = [
 ];
 
 export default function HomePage() {
-  const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
-
   useEffect(() => {
     const sections = document.querySelectorAll<HTMLElement>("[data-reveal]");
     if (!("IntersectionObserver" in window)) {
@@ -56,9 +55,7 @@ export default function HomePage() {
 
       <section data-reveal id="zona" className="destination-section scroll-mt-20 px-5 py-16 sm:py-20 lg:px-8">
         <div className="section-heading mx-auto text-center"><p className="eyebrow">PILIH ARAH PENJELAJAHANMU</p><h2 className="section-title">Jelajahi Dunia Satwa</h2><p className="section-description mx-auto">Lima pintu untuk mengenal kehidupan. Setiap destinasi menyimpan cerita dan sudut pandang yang berbeda.</p></div>
-        <div className="destination-grid mx-auto mt-9 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-6" onPointerLeave={() => setSelectedDestination(null)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setSelectedDestination(null); }}>
-          {destinations.map((destination, index) => <a key={destination.name} href={destination.href} onPointerEnter={() => setSelectedDestination(destination.name)} onPointerDown={() => setSelectedDestination(destination.name)} onFocus={() => setSelectedDestination(destination.name)} style={{ backgroundImage: `linear-gradient(180deg, transparent 24%, rgb(7 25 19 / 84%) 100%), url("${destination.image}")` }} className={`destination-card group lg:col-span-2 ${index === 3 ? "lg:col-start-2" : index === 4 ? "lg:col-start-4" : ""} ${selectedDestination ? selectedDestination === destination.name ? "is-selected" : "is-dimmed" : ""}`}><span className="destination-kicker">{destination.kicker}</span><span className="destination-arrow" aria-hidden="true">↗</span><div><h3>{destination.name}</h3><p>{destination.description}</p></div></a>)}
-        </div>
+        <LandingDestinations destinations={destinations} />
         <p className="destination-footnote">Mulai dari rasa ingin tahu. Temukan cerita yang paling dekat denganmu.</p>
       </section>
 

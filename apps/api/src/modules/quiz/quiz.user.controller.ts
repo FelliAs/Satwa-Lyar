@@ -117,8 +117,9 @@ export const submitQuizAnswers = async (
   try {
     const { id } = req.params;
     const userId = req.user!.id;
-    const { answers } = req.body as {
+    const { answers, display_name } = req.body as {
       answers: Array<{ question_id: number; answer: string }>;
+      display_name: string;
     };
 
     // Pastikan quiz ada dan aktif
@@ -193,9 +194,9 @@ export const submitQuizAnswers = async (
 
     // Simpan ke tabel quiz_results
     const insertResult = await pool.query(
-      `INSERT INTO quiz_results (user_id, quiz_id, score, total_questions, correct_answers, completed_at)
-       VALUES (?, ?, ?, ?, ?, NOW())`,
-      [userId, id, score, totalQuestions, correctCount]
+      `INSERT INTO quiz_results (user_id, display_name, quiz_id, score, total_questions, correct_answers, completed_at)
+       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+      [userId, display_name.trim(), id, score, totalQuestions, correctCount]
     );
 
     res.status(200).json({
@@ -205,6 +206,7 @@ export const submitQuizAnswers = async (
         result_id: Number(insertResult.insertId),
         quiz_id: quiz.id,
         quiz_title: quiz.title,
+        display_name: display_name.trim(),
         score,
         total_questions: totalQuestions,
         correct_answers: correctCount,
@@ -212,6 +214,67 @@ export const submitQuizAnswers = async (
         passed: score >= 70,
         review,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================
+// GET /api/quiz/:id/leaderboard (Public leaderboard)
+// Hanya skor terbaik setiap identitas yang ditampilkan agar percobaan berulang
+// tidak memenuhi papan peringkat dengan pemain yang sama.
+// ============================================
+export const getQuizLeaderboard = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const quizId = Number(req.params.id);
+    if (!Number.isInteger(quizId) || quizId < 1) {
+      return next(createError('ID quiz tidak valid.', 422));
+    }
+
+    const quizRows = await pool.query(
+      'SELECT id, title FROM quizzes WHERE id = ? AND is_active = 1',
+      [quizId]
+    );
+    if (!quizRows[0]) {
+      return next(createError('Quiz tidak ditemukan atau sudah dinonaktifkan.', 404));
+    }
+
+    const rows = await pool.query(
+      `SELECT qr.id, qr.display_name, qr.score, qr.total_questions, qr.correct_answers, qr.completed_at
+       FROM quiz_results qr
+       WHERE qr.quiz_id = ?
+         AND NOT EXISTS (
+           SELECT 1 FROM quiz_results better
+           WHERE better.quiz_id = qr.quiz_id
+             AND better.user_id = qr.user_id
+             AND (
+               better.score > qr.score
+               OR (better.score = qr.score AND better.correct_answers > qr.correct_answers)
+               OR (better.score = qr.score AND better.correct_answers = qr.correct_answers
+                   AND better.completed_at > qr.completed_at)
+             )
+         )
+       ORDER BY qr.score DESC, qr.correct_answers DESC, qr.completed_at ASC
+       LIMIT 10`,
+      [quizId]
+    );
+
+    res.status(200).json({
+      success: true,
+      data: (rows as any[]).map((row, index) => ({
+        rank: index + 1,
+        id: Number(row.id),
+        display_name: row.display_name || 'Pengunjung',
+        score: Number(row.score),
+        total_questions: Number(row.total_questions),
+        correct_answers: Number(row.correct_answers),
+        completed_at: row.completed_at,
+      })),
     });
   } catch (error) {
     next(error);

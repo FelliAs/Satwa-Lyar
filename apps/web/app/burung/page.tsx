@@ -2,6 +2,8 @@
 
 import AnimalHighlights from "@/components/AnimalHighlights";
 import ZoneAnimalGrid from "@/components/ZoneAnimalGrid";
+import ZoneHeroImage from "@/components/ZoneHeroImage";
+
 
 const facts = [
   {
@@ -30,13 +32,7 @@ export default function BirdsPage() {
     <main className="font-serif-headings min-h-screen bg-[#faf9f4] text-[#27352b]">
       {/* HERO */}
       <section className="relative isolate min-h-[520px] overflow-hidden bg-[#163d3b] sm:min-h-[580px]">
-        <div
-          className="absolute inset-0 -z-20 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://tamanmini.com/taman_jelajah_indonesia/wp-content/uploads/2023/09/Taman-Burung.jpg')",
-          }}
-        />
+        <ZoneHeroImage zone="burung" />
 
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#102e2c]/95 via-[#102e2c]/75 to-[#102e2c]/25" />
 
@@ -131,17 +127,28 @@ export default function BirdsPage() {
 
       {/* BIRD EXPLORER */}
       <AnimalHighlights location="burung" title="Highlight Satwa" description="Kenali satwa pilihan dari zona ini dan jelajahi informasi lengkapnya." />
-      <section id="jelajahi" className="bg-white py-16 sm:py-20">
-        <ZoneAnimalGrid
-          zone="burung"
-          filters={[{ label: "Semua", value: "Semua" }]}
-          searchPlaceholder="Nama burung atau habitat..."
-          badgeLabel={(animal, activeFilter) =>
-            activeFilter === "Semua"
-              ? animal.category_name || "Satwa"
-              : activeFilter
-          }
-        />
+      <section id="jelajahi" className="bg-white py-16 sm:py-20">
+
+        <ZoneAnimalGrid
+
+          zone="burung"
+
+          filters={[{ label: "Semua", value: "Semua" }]}
+
+          searchPlaceholder="Nama burung atau habitat..."
+
+          badgeLabel={(animal, activeFilter) =>
+
+            activeFilter === "Semua"
+
+              ? animal.category_name || "Satwa"
+
+              : activeFilter
+
+          }
+
+        />
+
       </section>
 
       {/* EDUCATION */}

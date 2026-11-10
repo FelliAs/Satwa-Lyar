@@ -10,7 +10,7 @@ import { CONSERVATION_STATUS_MAP } from '@/lib/utils';
 
 type PageState = 'loading' | 'ready' | 'error' | 'not-found';
 
-const fallbackImage = '/ahay.png';
+const fallbackImage = '/aha.png';
 
 export default function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
