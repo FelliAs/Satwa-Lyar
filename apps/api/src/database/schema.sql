@@ -270,12 +270,11 @@ INSERT IGNORE INTO categories (name, slug, description, icon) VALUES
   ('Burung', 'burung', 'Hewan vertebrata berbulu dengan kemampuan terbang yang beragam', '🦅');
 
 -- ============================================
--- SEED DATA: Admin user default
--- Password: Admin1234 (hashed dengan bcrypt)
--- GANTI PASSWORD INI SETELAH SETUP!
+-- ADMIN SEED
 -- ============================================
-INSERT IGNORE INTO users (public_id, name, email, password, is_admin) VALUES
-  ('adm_0001', 'Administrator', 'admin@satwalyar.com', '$2a$12$fz89kTCEfa595rvaVoVJr.IMQCYDrVeyl5KPkVZBJlnmpzSvd4t4i', 1);
+-- Admin tidak lagi ditanam dengan password default di schema.
+-- Buat/rotasi akun admin melalui POST /api/admin/users setelah deployment,
+-- atau jalankan seed terpisah dengan hash bcrypt dari secret manager.
 
 -- Seed penghitung nomor admin
 INSERT IGNORE INTO admin_counters (name, value) VALUES ('admin', 1);

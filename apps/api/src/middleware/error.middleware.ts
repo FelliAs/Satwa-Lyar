@@ -18,7 +18,10 @@ export const errorHandler = (
   next: NextFunction
 ): void => {
   const statusCode = err.statusCode || 500;
-  const message = err.message || 'Terjadi kesalahan pada server.';
+  const isServerError = statusCode >= 500;
+  const message = isServerError
+    ? 'Terjadi kesalahan pada server. Gunakan request_id untuk pelacakan.'
+    : err.message || 'Permintaan tidak dapat diproses.';
   const isDatabaseError = (err as any)?.code === 'ER_' || (err as any)?.errno !== undefined;
 
   // Error operasional (4xx yang memang diharapkan, mis. kredensial salah)
@@ -56,7 +59,7 @@ export const errorHandler = (
     success: false,
     message,
     request_id: req.requestId,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    // Jangan bocorkan stack trace/error internal ke client, termasuk development.
   });
 };
 
