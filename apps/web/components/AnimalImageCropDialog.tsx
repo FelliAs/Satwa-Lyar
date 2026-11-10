@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
-import { Check, Loader2, Minus, Plus, RotateCcw, X } from 'lucide-react';
+import { Check, Loader2, X } from 'lucide-react';
 
-const CROP_WIDTH = 900;
-const CROP_HEIGHT = 224;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const CROP_SIZE = 900;
 
 interface AnimalImageCropDialogProps {
   file: File;
@@ -18,6 +17,21 @@ interface ImageDimensions {
   height: number;
 }
 
+interface CropRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+type CropInteraction = {
+  mode: 'move' | 'resize';
+  handle?: string;
+  startX: number;
+  startY: number;
+  rect: CropRect;
+};
+
 export default function AnimalImageCropDialog({
   file,
   onCancel,
@@ -25,29 +39,29 @@ export default function AnimalImageCropDialog({
 }: AnimalImageCropDialogProps) {
   const imageRef = useRef<HTMLImageElement>(null);
   const cropAreaRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ x: number; y: number; offsetX: number; offsetY: number } | null>(null);
+  const interactionRef = useRef<CropInteraction | null>(null);
   const [imageSrc, setImageSrc] = useState('');
   const [dimensions, setDimensions] = useState<ImageDimensions | null>(null);
-  const [cropAreaSize, setCropAreaSize] = useState({ width: 450, height: 112 });
-  const [zoom, setZoom] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [cropAreaSize, setCropAreaSize] = useState({ width: 450, height: 360 });
+  const [cropRect, setCropRect] = useState<CropRect | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const scale = dimensions
-    ? Math.max(
-        cropAreaSize.width / dimensions.width,
-        cropAreaSize.height / dimensions.height
-      ) * zoom
+  const imageScale = dimensions
+    ? Math.min(cropAreaSize.width / dimensions.width, cropAreaSize.height / dimensions.height)
     : 1;
-  const displayWidth = dimensions ? dimensions.width * scale : cropAreaSize.width;
-  const displayHeight = dimensions ? dimensions.height * scale : cropAreaSize.height;
+  const displayWidth = dimensions ? dimensions.width * imageScale : cropAreaSize.width;
+  const displayHeight = dimensions ? dimensions.height * imageScale : cropAreaSize.height;
+  const imageLeft = (cropAreaSize.width - displayWidth) / 2;
+  const imageTop = (cropAreaSize.height - displayHeight) / 2;
 
   useEffect(() => {
     const image = new Image();
     const source = URL.createObjectURL(file);
     image.onload = () => {
+      setError('');
       setDimensions({ width: image.naturalWidth, height: image.naturalHeight });
+      setCropRect(null);
       setImageSrc(source);
     };
     image.onerror = () => {
@@ -67,6 +81,12 @@ export default function AnimalImageCropDialog({
       const { width, height } = entry.contentRect;
       if (width > 0 && height > 0) {
         setCropAreaSize({ width, height });
+        setCropRect((current) => current ?? {
+          x: width * 0.1,
+          y: height * 0.1,
+          width: width * 0.8,
+          height: height * 0.8,
+        });
       }
     });
     observer.observe(cropArea);
@@ -81,53 +101,61 @@ export default function AnimalImageCropDialog({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onCancel, saving]);
 
-  const clampOffset = (x: number, y: number, currentZoom = zoom) => {
-    if (!dimensions) return { x: 0, y: 0 };
-    const currentScale =
-      Math.max(
-        cropAreaSize.width / dimensions.width,
-        cropAreaSize.height / dimensions.height
-      ) * currentZoom;
-    const width = dimensions.width * currentScale;
-    const height = dimensions.height * currentScale;
-    return {
-      x: Math.max(-(width - cropAreaSize.width) / 2, Math.min((width - cropAreaSize.width) / 2, x)),
-      y: Math.max(-(height - cropAreaSize.height) / 2, Math.min((height - cropAreaSize.height) / 2, y)),
-    };
-  };
-
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!dimensions || saving) return;
+    if (!dimensions || !cropRect || saving) return;
+    const pointX = event.clientX - event.currentTarget.getBoundingClientRect().left;
+    const pointY = event.clientY - event.currentTarget.getBoundingClientRect().top;
+    const handle = (event.target as HTMLElement).dataset.handle;
+    const isInside = pointX >= cropRect.x && pointX <= cropRect.x + cropRect.width && pointY >= cropRect.y && pointY <= cropRect.y + cropRect.height;
+    if (!handle && !isInside) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragRef.current = {
-      x: event.clientX,
-      y: event.clientY,
-      offsetX: offset.x,
-      offsetY: offset.y,
+    interactionRef.current = {
+      mode: handle ? 'resize' : 'move',
+      handle,
+      startX: pointX,
+      startY: pointY,
+      rect: cropRect,
     };
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current) return;
-    setOffset(
-      clampOffset(
-        dragRef.current.offsetX + event.clientX - dragRef.current.x,
-        dragRef.current.offsetY + event.clientY - dragRef.current.y
-      )
-    );
+    const interaction = interactionRef.current;
+    if (!interaction || !cropRect) return;
+    const box = event.currentTarget.getBoundingClientRect();
+    const pointX = event.clientX - box.left;
+    const pointY = event.clientY - box.top;
+    const dx = pointX - interaction.startX;
+    const dy = pointY - interaction.startY;
+    const minSize = 48;
+    const bounds = { left: imageLeft, top: imageTop, right: imageLeft + displayWidth, bottom: imageTop + displayHeight };
+    let next = interaction.rect;
+
+    if (interaction.mode === 'move') {
+      next = {
+        ...next,
+        x: Math.max(bounds.left, Math.min(bounds.right - next.width, next.x + dx)),
+        y: Math.max(bounds.top, Math.min(bounds.bottom - next.height, next.y + dy)),
+      };
+    } else {
+      const handle = interaction.handle || '';
+      let left = next.x;
+      let top = next.y;
+      let right = next.x + next.width;
+      let bottom = next.y + next.height;
+      if (handle.includes('w')) left = Math.max(bounds.left, Math.min(right - minSize, next.x + dx));
+      if (handle.includes('e')) right = Math.min(bounds.right, Math.max(left + minSize, next.x + next.width + dx));
+      if (handle.includes('n')) top = Math.max(bounds.top, Math.min(bottom - minSize, next.y + dy));
+      if (handle.includes('s')) bottom = Math.min(bounds.bottom, Math.max(top + minSize, next.y + next.height + dy));
+      next = { x: left, y: top, width: right - left, height: bottom - top };
+    }
+    setCropRect(next);
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    dragRef.current = null;
+    interactionRef.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-  };
-
-  const changeZoom = (nextZoom: number) => {
-    const clampedZoom = Math.max(1, Math.min(3, nextZoom));
-    setZoom(clampedZoom);
-    setOffset((current) => clampOffset(current.x, current.y, clampedZoom));
   };
 
   const createCroppedFile = async (): Promise<File> => {
@@ -135,27 +163,27 @@ export default function AnimalImageCropDialog({
     if (!image || !dimensions) {
       throw new Error('Foto belum siap untuk dipotong.');
     }
-    await image.decode();
+    if (!image.complete || image.naturalWidth === 0) {
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error('Foto tidak dapat dibuka. Silakan pilih berkas gambar lain.'));
+      });
+    }
 
-    const cropWidth = cropAreaSize.width / scale;
-    const cropHeight = cropAreaSize.height / scale;
-    const sourceX = Math.max(
-      0,
-      Math.min(dimensions.width - cropWidth, (dimensions.width - cropWidth) / 2 - offset.x / scale)
-    );
-    const sourceY = Math.max(
-      0,
-      Math.min(dimensions.height - cropHeight, (dimensions.height - cropHeight) / 2 - offset.y / scale)
-    );
+    if (!cropRect) throw new Error('Area crop foto belum siap.');
+    const sourceX = Math.max(0, (cropRect.x - imageLeft) / imageScale);
+    const sourceY = Math.max(0, (cropRect.y - imageTop) / imageScale);
+    const cropWidth = Math.min(dimensions.width - sourceX, cropRect.width / imageScale);
+    const cropHeight = Math.min(dimensions.height - sourceY, cropRect.height / imageScale);
     const canvas = document.createElement('canvas');
-    canvas.width = CROP_WIDTH;
-    canvas.height = CROP_HEIGHT;
+    canvas.width = CROP_SIZE;
+    canvas.height = Math.max(1, Math.round(CROP_SIZE * (cropHeight / cropWidth)));
 
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Browser tidak dapat memproses hasil crop foto.');
 
     context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, CROP_WIDTH, CROP_HEIGHT);
+    context.fillRect(0, 0, canvas.width, canvas.height);
     context.drawImage(
       image,
       sourceX,
@@ -164,8 +192,8 @@ export default function AnimalImageCropDialog({
       cropHeight,
       0,
       0,
-      CROP_WIDTH,
-      CROP_HEIGHT
+      canvas.width,
+      canvas.height
     );
 
     const blob = await new Promise<Blob | null>((resolve) =>
@@ -173,7 +201,7 @@ export default function AnimalImageCropDialog({
     );
     if (!blob) throw new Error('Gagal membuat hasil crop foto.');
     if (blob.size > MAX_FILE_SIZE) {
-      throw new Error('Hasil crop melebihi batas maksimal 5 MB. Kurangi zoom lalu coba lagi.');
+      throw new Error('Hasil crop melebihi batas maksimal 5 MB. Perkecil area crop lalu coba lagi.');
     }
 
     const baseName = file.name.replace(/\.[^.]+$/, '') || 'foto-satwa';
@@ -216,7 +244,7 @@ export default function AnimalImageCropDialog({
               Sesuaikan Foto Satwa
             </h2>
             <p className="mt-1 text-xs text-emerald-900/60">
-              Geser foto untuk mengatur posisi, lalu sesuaikan zoom.
+              Geser dan ubah ukuran kotak untuk menyesuaikan bagian foto.
             </p>
           </div>
           <button
@@ -233,12 +261,12 @@ export default function AnimalImageCropDialog({
         <div className="p-5">
           <div
             ref={cropAreaRef}
-            className="relative mx-auto aspect-[225/56] w-full max-w-[450px] touch-none select-none overflow-hidden rounded-xl bg-slate-950"
+            className="relative mx-auto aspect-square max-h-[55vh] w-full max-w-[450px] touch-none select-none overflow-hidden rounded-xl bg-slate-950"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            aria-label="Area crop foto rasio 900 banding 224, geser untuk mengatur posisi"
+            aria-label="Area crop foto, geser kotak dan tarik sudutnya untuk mengubah ukuran"
           >
             {dimensions ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -251,7 +279,9 @@ export default function AnimalImageCropDialog({
                 style={{
                   width: displayWidth,
                   height: displayHeight,
-                  transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px))`,
+                  left: imageLeft,
+                  top: imageTop,
+                  transform: 'none',
                 }}
               />
             ) : (
@@ -263,55 +293,20 @@ export default function AnimalImageCropDialog({
                 )}
               </div>
             )}
-            <div className="pointer-events-none absolute inset-0 border-2 border-white/90 shadow-[0_0_0_999px_rgba(0,0,0,0.38)]" />
+            {cropRect && (
+              <>
+                <div className="absolute border-2 border-white shadow-[0_0_0_999px_rgba(0,0,0,.45)]" style={{ left: cropRect.x, top: cropRect.y, width: cropRect.width, height: cropRect.height }}>
+                  <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'linear-gradient(to right, transparent 33.1%, rgba(255,255,255,.6) 33.3%, transparent 33.5%, transparent 66.1%, rgba(255,255,255,.6) 66.3%, transparent 66.5%), linear-gradient(to bottom, transparent 33.1%, rgba(255,255,255,.6) 33.3%, transparent 33.5%, transparent 66.1%, rgba(255,255,255,.6) 66.3%, transparent 66.5%)' }} />
+                  {['nw', 'ne', 'sw', 'se'].map((handle) => (
+                    <span key={handle} data-handle={handle} className={`absolute h-4 w-4 border-white ${handle.includes('n') ? 'top-[-2px] border-t-4' : 'bottom-[-2px] border-b-4'} ${handle.includes('w') ? 'left-[-2px] border-l-4' : 'right-[-2px] border-r-4'}`} />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
           <p className="mt-3 text-center text-xs font-medium text-slate-500">
-            Rasio 900:224 · Hasil crop 900 × 224 px
+            Rasio 1:1 · Hasil crop 900 × 900 px
           </p>
-
-          <div className="mx-auto mt-5 flex max-w-xs items-center gap-3">
-            <button
-              type="button"
-              onClick={() => changeZoom(zoom - 0.1)}
-              disabled={!dimensions || zoom <= 1 || saving}
-              aria-label="Perkecil foto"
-              className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:border-emerald-500 hover:text-emerald-700 disabled:opacity-40"
-            >
-              <Minus className="h-4 w-4" />
-            </button>
-            <input
-              type="range"
-              min="1"
-              max="3"
-              step="0.01"
-              value={zoom}
-              onChange={(event) => changeZoom(Number(event.target.value))}
-              disabled={!dimensions || saving}
-              aria-label="Zoom foto"
-              className="h-2 flex-1 cursor-pointer accent-emerald-700 disabled:cursor-not-allowed"
-            />
-            <button
-              type="button"
-              onClick={() => changeZoom(zoom + 0.1)}
-              disabled={!dimensions || zoom >= 3 || saving}
-              aria-label="Perbesar foto"
-              className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:border-emerald-500 hover:text-emerald-700 disabled:opacity-40"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setZoom(1);
-                setOffset({ x: 0, y: 0 });
-              }}
-              disabled={!dimensions || saving}
-              aria-label="Atur ulang crop"
-              className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:border-emerald-500 hover:text-emerald-700 disabled:opacity-40"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
-          </div>
 
           {error && dimensions && (
             <p className="mt-3 text-center text-xs font-medium text-rose-600" role="alert">

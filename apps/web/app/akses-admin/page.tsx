@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
             Akses Administrator
           </h1>
           <p className="mt-2 text-sm text-[#73796e]">
-            Halaman ini hanya untuk administrator SATWA LYAR. Pengunjung umum
+            Halaman ini hanya untuk administrator JSN-EDU. Pengunjung umum
             tidak perlu login untuk menjelajahi satwa.
           </p>
 

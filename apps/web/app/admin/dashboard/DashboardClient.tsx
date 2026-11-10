@@ -128,7 +128,7 @@ export default function DashboardClient() {
   return (
     <AdminLayout
       title="Dashboard"
-      subtitle="Ringkasan data SATWA LYAR dan analitik kunjungan pengunjung."
+      subtitle="Ringkasan data JSN-EDU dan analitik kunjungan pengunjung."
     >
       <div className="space-y-4">
         {/* Filter periode */}

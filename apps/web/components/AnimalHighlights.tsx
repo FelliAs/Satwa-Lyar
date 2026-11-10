@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { highlightsApi } from '@/lib/api';
-import type { AnimalHighlight } from '@/lib/types';
+import { highlightsApi, publicAnimalsApi } from '@/lib/api';
+import type { Animal, AnimalHighlight } from '@/lib/types';
 
 const FALLBACK_IMAGE = '/ahay.png';
 
@@ -12,6 +12,22 @@ interface AnimalHighlightsProps {
   title?: string;
   description?: string;
 }
+
+const toHighlight = (animal: Animal, priority: number): AnimalHighlight => ({
+  id: animal.id,
+  name: animal.name,
+  scientific_name: animal.scientific_name,
+  description: animal.description,
+  priority,
+  image_url: animal.image_url,
+  image_key: animal.image_key,
+  category: {
+    id: animal.category_id,
+    name: animal.category_name || 'Satwa',
+    slug: animal.category_slug || '',
+    icon: animal.category_icon,
+  },
+});
 
 export default function AnimalHighlights({
   location,
@@ -26,7 +42,22 @@ export default function AnimalHighlights({
     const controller = new AbortController();
 
     highlightsApi.list(location, controller.signal)
-      .then((response) => setItems(response.data ?? []))
+      .then(async (response) => {
+        const highlights = response.data ?? [];
+
+        // Highlight yang diatur admin tetap menjadi prioritas. Jika belum ada,
+        // tampilkan satwa dari zona aktif agar bagian ini tidak kosong.
+        if (highlights.length > 0 || location === 'landing') {
+          setItems(highlights);
+          return;
+        }
+
+        const fallback = await publicAnimalsApi.list(
+          { zone: location, limit: 4, sort: 'name_asc' },
+          controller.signal,
+        );
+        setItems((fallback.data ?? []).slice(0, 4).map((animal, index) => toHighlight(animal, index + 1)));
+      })
       .catch((reason) => {
         if (reason instanceof DOMException && reason.name === 'AbortError') return;
         setError(reason instanceof Error ? reason.message : 'Highlight satwa gagal dimuat.');

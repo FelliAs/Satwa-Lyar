@@ -53,7 +53,7 @@ export default function AdminSidebar({
         {!collapsed && (
           <div className="min-w-0">
             <p className="truncate text-base font-extrabold tracking-wide text-white">
-              SATWA LYAR
+              JSN-EDU
             </p>
             <p className="truncate text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-400">
               Admin Dashboard

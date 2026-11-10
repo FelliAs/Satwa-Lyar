@@ -15,7 +15,13 @@ const nextConfig: NextConfig = {
     },
   },
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://satwa-lyar-api.vercel.app";
+    // Saat development, frontend harus meneruskan /api ke Express lokal.
+    // Deployment backend hanya dipakai jika URL production dikonfigurasi.
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NODE_ENV === "production"
+        ? "https://satwa-lyar-api.vercel.app"
+        : "http://localhost:5000");
 
     return [
       {

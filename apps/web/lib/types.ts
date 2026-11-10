@@ -1,5 +1,5 @@
 /**
- * Types untuk SATWA LYAR Admin Frontend.
+ * Types untuk JSN-EDU Admin Frontend.
  *
  * Seluruh bentuk data di bawah ini mengikuti response API backend
  * (`apps/api` / deployment `satwa-lyar-api.vercel.app`) secara langsung.
@@ -156,12 +156,23 @@ export interface QuizSubmitResult {
   result_id: number;
   quiz_id: number;
   quiz_title: string;
+  display_name: string;
   score: number;
   total_questions: number;
   correct_answers: number;
   wrong_answers: number;
   passed: boolean;
   review: QuizReviewItem[];
+}
+
+export interface QuizLeaderboardEntry {
+  rank: number;
+  id: number;
+  display_name: string;
+  score: number;
+  total_questions: number;
+  correct_answers: number;
+  completed_at: string;
 }
 
 /** Satu baris riwayat pengerjaan kuis (`GET /api/quiz/history`). */

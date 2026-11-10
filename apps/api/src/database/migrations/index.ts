@@ -9,6 +9,7 @@ export interface Migration {
 import { up as usersIdentity } from './001_users_identity';
 import { up as logsActivity } from './002_logs_activity';
 import { up as animalHighlights } from './003_animal_highlights';
+import { up as quizLeaderboard } from './004_quiz_leaderboard';
 
 export const MIGRATIONS: Migration[] = [
   {
@@ -25,5 +26,10 @@ export const MIGRATIONS: Migration[] = [
     version: '003_animal_highlights',
     description: 'Buat tabel highlight satwa untuk landing page dan zona',
     up: animalHighlights,
+  },
+  {
+    version: '004_quiz_leaderboard',
+    description: 'Simpan nama pemain dan indeks leaderboard kuis',
+    up: quizLeaderboard,
   },
 ];

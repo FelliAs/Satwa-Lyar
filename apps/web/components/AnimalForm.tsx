@@ -497,6 +497,7 @@ export default function AnimalForm({
       </div>
       {pendingCropFile && (
         <AnimalImageCropDialog
+          key={`${pendingCropFile.name}-${pendingCropFile.lastModified}`}
           file={pendingCropFile}
           onCancel={() => {
             setPendingCropFile(null);

@@ -2,6 +2,7 @@
 
 import AnimalHighlights from "@/components/AnimalHighlights";
 import ZoneAnimalGrid from "@/components/ZoneAnimalGrid";
+import ZoneHeroImage from "@/components/ZoneHeroImage";
 
 const facts = [
   {
@@ -29,13 +30,7 @@ export default function airtawarPage() {
     <main className="font-serif-headings min-h-screen bg-[#faf9f4] text-[#27352b]">
       {/* HERO */}
       <section className="relative isolate min-h-[520px] overflow-hidden bg-[#163d3b] sm:min-h-[580px]">
-        <div
-          className="absolute inset-0 -z-20 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://image.idn.media/post/20200422/new-8-2016-aria-amazon-cruise-1-low-resolution-cfb9877f8c8c161382920d818ef0711f.jpg')",
-          }}
-        />
+        <ZoneHeroImage zone="air-tawar" />
 
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#102e2c]/95 via-[#102e2c]/75 to-[#102e2c]/25" />
 
@@ -49,7 +44,7 @@ export default function airtawarPage() {
             </a>
 
             <p className="mt-8 text-xs font-bold uppercase tracking-[0.25em] text-[#b7d9ba] sm:text-sm">
-              SATWA LYAR / JELAJAHI HABITAT
+              JSN-EDU / JELAJAHI HABITAT
             </p>
 
             <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
@@ -193,7 +188,7 @@ export default function airtawarPage() {
 
             <p className="mt-4 leading-7 text-white/70">
               Lanjutkan petualanganmu dan temukan dunia satwa lainnya di
-              SATWA LYAR.
+              JSN-EDU.
             </p>
           </div>
 

@@ -5,6 +5,7 @@ import {
   submitQuizAnswers,
   getUserQuizHistory,
   getUserQuizResultById,
+  getQuizLeaderboard,
 } from './quiz.user.controller';
 import { submitQuizValidation } from './quiz.user.validation';
 import { validate } from '../../middleware/validation.middleware';
@@ -20,6 +21,9 @@ router.get('/history', authenticate, getUserQuizHistory);
 
 // GET /api/quiz/results/:id (User: detail hasil kuis tertentu)
 router.get('/results/:id', authenticate, getUserQuizResultById);
+
+// GET /api/quiz/:id/leaderboard (Public: peringkat terbaik kuis)
+router.get('/:id/leaderboard', getQuizLeaderboard);
 
 // GET /api/quiz/:id (Public: soal kuis tanpa jawaban benar)
 router.get('/:id', getPublicQuizById);

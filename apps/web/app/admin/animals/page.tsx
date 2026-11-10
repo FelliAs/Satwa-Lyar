@@ -227,7 +227,7 @@ export default function AnimalsPage() {
   return (
     <AdminLayout
       title="Kelola Data Satwa"
-      subtitle="Tambah, ubah, hapus, dan filter seluruh data satwa SATWA LYAR."
+      subtitle="Tambah, ubah, hapus, dan filter seluruh data satwa JSN-EDU."
     >
       <div className="space-y-4">
         {/* Pemilih wahana (dinamis mengikuti data backend) */}
