@@ -375,7 +375,8 @@ export interface RecentGuest {
 }
 
 export interface AnimalsByCategory {
-  category_name: string;
+  category_name?: string | null;
+  name?: string | null;
   total: number;
 }
 
