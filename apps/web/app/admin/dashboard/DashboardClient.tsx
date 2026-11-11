@@ -99,8 +99,8 @@ export default function DashboardClient() {
   const exhibitData = useMemo(
     () =>
       (data?.animals_by_category ?? []).map((item) => ({
-        name: item.category_name,
-        total: item.total,
+        name: item.category_name || item.name || 'Tanpa kategori',
+        total: Number(item.total ?? 0),
       })),
     [data]
   );
@@ -108,7 +108,9 @@ export default function DashboardClient() {
   const categoryCountMap = useMemo(() => {
     const map = new Map<string, number>();
     (data?.animals_by_category ?? []).forEach((c) => {
-      map.set(c.category_name.toLowerCase().trim(), Number(c.total));
+      const categoryName = String(c.category_name || c.name || 'Tanpa kategori').trim();
+      if (!categoryName) return;
+      map.set(categoryName.toLowerCase(), Number(c.total ?? 0));
     });
     return map;
   }, [data]);
